@@ -76,8 +76,11 @@ export const ResumoPagamento = () => {
           quantidade: 1
         })
       }
-      navigator.navigate('Tabs')
       setShowConfirmModal(false);
+      navigator.reset({
+        index: 0,
+        routes: [{ name: 'Tabs' }],
+      });
     } else {
       alert('Ocorreu um erro ao pagar o funcionário', res.message);
     }
@@ -289,8 +292,7 @@ export const ResumoPagamento = () => {
 
 const styles = StyleSheet.create({
   container: {
-    height: (Platform.OS === 'web') ? '95%' : 'auto',
-    paddingBottom: 16
+    flex: 1
   },
   content: {
     padding: 16,

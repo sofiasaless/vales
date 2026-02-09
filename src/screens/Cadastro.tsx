@@ -201,11 +201,6 @@ export const Cadastro = () => {
             keyboardShouldPersistTaps="handled"
           >
             <View style={styles.card}>
-              <Button size='small' appearance='ghost' status='danger' onPress={() => {
-                setFormData(emptyFuncionario)
-                setsalarioTexto('')
-              }}>Limpar campos para novo contrato</Button>
-
               <AvatarUpload value={formData.foto_url}
                 onChange={(url) => handleChange('foto_url', url)}
               />

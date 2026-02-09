@@ -64,7 +64,10 @@ export const DetalhesFuncionario = () => {
     try {
       const funcFir = new FuncionarioFirestore()
       await funcFir.excluir(idFunc)
-      navigation.navigate('Tabs')
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Tabs' }],
+      });
     } catch (error) {
       console.error('erro ao excluir funcionário ', error)
     }
@@ -121,7 +124,7 @@ export const DetalhesFuncionario = () => {
                 />
               )}
 
-              <View style={{gap: 7}}>
+              <View style={{ gap: 7 }}>
                 <Button disabled={funcionarioFoco?.contrato === undefined} size='small' status='warning'
                   onPress={() => contratoFuncionario(funcionarioFoco?.contrato?.descricao_servicos || '', funcionarioFoco?.contrato?.contratacao_regime_ctl || false)}
                 >Compartilhar contrato (sem assinatura)</Button>
@@ -212,7 +215,7 @@ export const DetalhesFuncionario = () => {
                 Demitir
               </Button>
             </View>
-            
+
           </>
         }
       </ScrollView>

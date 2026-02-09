@@ -54,7 +54,11 @@ export const AssinaturaContrato = () => {
         text: 'Confirmar',
         onPress: () => {
           signatureRef.current?.limpar()
-          navigator.goBack()
+          // a pilha precisa ser limpa para ir até a tela inicial, pois ocorre erro ao abrir a tela de assinatura e é possível de voltar para a tela anterior
+          navigator.reset({
+            index: 0,
+            routes: [{ name: 'Tabs' }],
+          });
         }
       }])
     } catch (error: any) {

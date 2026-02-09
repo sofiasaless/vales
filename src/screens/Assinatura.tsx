@@ -65,7 +65,10 @@ export const Assinatura = () => {
             quantidade: 1
           })
         }
-        navigator.navigate('Tabs')
+        navigator.reset({
+          index: 0,
+          routes: [{ name: 'Tabs' }],
+        });
       } else {
         alert('Ocorreu um erro ao confirmar pagamento do funcionário', res.message);
       }
