@@ -79,22 +79,18 @@ export async function contratoFuncionario(servico: string, clt: boolean, assinat
           <p><strong>CLÁUSULA ${(contagem_clausulas++)}ª:</strong> PLENO CONHECIMENTO E CONSENTIMENTO: O(A) CONTRATADO(A) DECLARA ter pleno conhecimento e consentimento sobre todas as implicações legais e trabalhistas desta opção, inclusive no que tange à ausência de direitos tipicamente trabalhistas (como FGTS, Seguro-Desemprego, PIS/PASEP, etc.), os quais não serão devidos por força deste acordo, salvo os explicitamente previstos nas cláusulas seguintes.</p>
 
           ${(!clt)?`<p><strong>CLÁUSULA ${(contagem_clausulas++)}ª:</strong> DECISÃO PESSOAL DO CONTRATADO: O(A) CONTRATADO(A) DECLARA que não deseja a contratação sob o regime da CLT por decisão pessoal e exclusiva, visando preservar benefícios de programas governamentais dos quais é beneficiário e que seriam afetados pela formalização do vínculo empregatício, assumindo toda e qualquer responsabilidade por esta escolha.</p>`:''}
-          
-          <p>DA CARGA HORÁRIA E REMUNERAÇÃO</p>
-
-          <p><strong>CLÁUSULA ${(contagem_clausulas++)}ª:</strong> ACEITAÇÃO DA JORNADA: O(A) CONTRATADO(A) ACEITA a organização da prestação dos serviços conforme o combinado entre as partes, podendo incluir dias e horários específicos (Terça a Domingo, das 16h às 23h30h) mas reconhece e concorda que possui autonomia para gerir seu tempo e método de trabalho, desde que entregue os resultados pactuados no prazo estipulado.</p>
 
           <p>DA RESPONSABILIDADE PELA DECISÃO</p>
 
           <p><strong>CLÁUSULA ${(contagem_clausulas++)}ª:</strong> RESPONSABILIDADE INDIVIDUAL: O(A) CONTRATADO(A) DECLARA ter plena responsabilidade por sua decisão de atuar como profissional autônomo, isentando o(a) CONTRATANTE de quaisquer ônus ou responsabilidades decorrentes da não-contratação sob o regime da Consolidação das Leis do Trabalho (CLT). O(A) CONTRATADO(A) obriga-se a custear todas as despesas pertinentes ao seu trabalho e a recolher todos os tributos devidos pela sua atividade (INSS, impostos municipais, estaduais ou federais).</p>
-
-          <div class="page-break"></div>
 
           <p>DIREITOS ACORDADOS</p>
 
           <p><strong>CLÁUSULA ${(contagem_clausulas++)}ª:</strong> DIREITO A FÉRIAS E GRATIFICAÇÃO (DÉCIMO TERCEIRO): Em caráter ESPONTÂNEO E NÃO OBRIGATÓRIO POR LEI, e reconhecendo a importância do bem-estar do(a) prestador(a) de serviços, o(a) CONTRATANTE se compromete a conceder ao(à) CONTRATADO(A), anualmente:
           a) Férias: Um período de 30 dias consecutivos de recesso, sem prestação de serviços, a ser agendado de comum acordo. Durante este período, o(a) CONTRATADO(A) receberá a remuneração mensal integral combinada.
           b) Gratificação de Final de Ano (Décimo Terceiro): Uma gratificação no valor equivalente a uma remuneração mensal integral, a ser paga até o dia 30 de dezembro de cada ano.</p>
+
+          <div class="page-break"></div>
 
           <p><strong>CLÁUSULA ${(contagem_clausulas++)}ª:</strong> RESCISÃO: Este contrato poderá ser rescindido por qualquer das partes, sem justa causa, ou imediatamente, em caso de descumprimento grave de qualquer cláusula.</p>
 
