@@ -38,6 +38,8 @@ export const AssinaturaContrato = () => {
       const cloudnary_url = await uploadAssinaturaCloudinary(assinaturaBase64);
       const funcionarioPronto: FuncionarioPostRequestBody = {
         ...funcObj,
+        nome: funcObj.nome.trim(),
+        cargo: funcObj.cargo.trim(),
         contrato: {
           contratacao_regime_ctl: funcObj.contrato?.contratacao_regime_ctl || false,
           descricao_servicos: funcObj.contrato?.descricao_servicos || '',
@@ -46,6 +48,11 @@ export const AssinaturaContrato = () => {
             contratante: ''
           }
         }
+      }
+
+      if (funcionarioPronto.tipo === 'DIARISTA') {
+        funcionarioPronto.segundo_dia_pagamento = 0;
+        funcionarioPronto.primeiro_dia_pagamento = 0;
       }
 
       const funcSer = new FuncionarioFirestore()

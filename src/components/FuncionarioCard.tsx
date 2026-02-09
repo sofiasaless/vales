@@ -15,7 +15,6 @@ interface FuncionarioCardProps {
 }
 
 export const FuncionarioCard: React.FC<FuncionarioCardProps> = ({ employee }) => {
-  const theme = useTheme();
   const navigator = useNavigation<NavigationProp<RootStackParamList>>();
 
   const voucherTotal = () => {
@@ -45,13 +44,13 @@ export const FuncionarioCard: React.FC<FuncionarioCardProps> = ({ employee }) =>
             category="s1"
             numberOfLines={1}
             style={styles.name}
-          >{employee.nome}</Text>
+          >{employee.nome.split(' ')[0]}</Text>
 
           <Text
             category="s2"
             appearance="hint"
             style={styles.role}
-          >{employee.cargo}</Text>
+          >{employee.cargo.trim()}</Text>
 
           <Text
             category="h6"
