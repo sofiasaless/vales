@@ -6,6 +6,7 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Vale } from '../schema/vale.shema';
 import { customTheme } from '../theme/custom.theme';
 import { converterTimestamp } from '../util/formatadores.util';
+import { LixeiraItem } from './LixeiraItem';
 
 interface VoucherItemCardProps {
   item: Vale;
@@ -53,9 +54,7 @@ export const ItemVale: React.FC<VoucherItemCardProps> = ({
           <Text category='s2'>R$ {totalValue.toFixed(2)}</Text>
 
             {showControls && 
-              <TouchableOpacity onPress={() => onExclude!(item)} style={styles.removeButton}>
-                <Feather name="trash" size={15} color={customTheme['color-danger-600']} />
-              </TouchableOpacity>
+              <LixeiraItem action={() => onExclude!(item)}/>
             }
         </View>
       </View>
@@ -87,6 +86,6 @@ const styles = StyleSheet.create({
   removeButton: {
     borderRadius: 999,
     padding: 7,
-    backgroundColor: '#ef6a5b3d'
+    backgroundColor: customTheme['background-transparent-danger']
   },
 });
