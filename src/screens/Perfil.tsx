@@ -139,9 +139,13 @@ export const Perfil = () => {
         {/* Restaurant Info */}
         <CardGradient styles={styles.card}>
           <View style={styles.restaurantRow}>
+            {(rest_conectado?.foto_url)?
+            <AvatarIniciais size='sm' name='' img_url={rest_conectado.foto_url}/>
+            :
             <View style={styles.restaurantIcon}>
               <MaterialIcons name="dining" size={24} color="#2EB8A2" />
             </View>
+            }
 
             <View>
               <Text appearance="hint" category="c1">

@@ -10,7 +10,7 @@ import {
   Text
 } from '@ui-kitten/components';
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, StyleSheet, View } from 'react-native';
 import { CardGradient } from '../components/CardGradient';
 import { useLoginGerente } from '../hooks/useLoginGerente';
 import { useRestauranteConectado, useRestauranteId } from '../hooks/useRestaurante';
@@ -19,6 +19,7 @@ import { useGerenteConectado, useListarGerentes } from '../hooks/useGerente';
 import { restauranteFirestore } from '../firestore/restaurante.firestore';
 import * as Updates from 'expo-updates';
 import { customTheme } from '../theme/custom.theme';
+import { AvatarIniciais } from '../components/AvatarIniciais';
 
 export const LoginGerente: React.FC = () => {
 
@@ -126,9 +127,15 @@ export const LoginGerente: React.FC = () => {
   return (
     <CardGradient colors_one='4' colors_two='1' styles={styles.container}>
       <View style={styles.header}>
-        <View style={{ backgroundColor: customTheme['background-transparent-primary'], padding: 20, borderRadius: 50, marginBottom: 20 }}>
-          <AntDesign name="user-switch" size={40} color={customTheme['color-primary-500']} />
-        </View>
+        {(restaurante_conectado?.foto_url) ?
+          <View style={{ marginBottom: 20 }}>
+            <Image style={{ width: 100, height: 100, borderRadius: 100}} source={{ uri: restaurante_conectado.foto_url }} />
+          </View>
+          :
+          <View style={{ backgroundColor: customTheme['background-transparent-primary'], padding: 20, borderRadius: 50, marginBottom: 20 }}>
+            <AntDesign name="user-switch" size={40} color={customTheme['color-primary-500']} />
+          </View>
+        }
         <Text category="h5" style={[styles.restaurantName, { color: customTheme['color-primary-400'] }]}>
           {restaurante_conectado?.nome_fantasia}
         </Text>
