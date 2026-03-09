@@ -1,7 +1,7 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { Layout, Text } from '@ui-kitten/components';
+import { Button, Layout, Text } from '@ui-kitten/components';
 import * as ImagePicker from 'expo-image-picker';
 import React, { ReactNode } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -204,7 +204,7 @@ export const Perfil = () => {
           />
         </CardGradient>
 
-        {/* <Button onPress={() => navigation.navigate('Config')}>confis</Button> */}
+        {/* <Button onPress={() => navigation.navigate('Config')}>confis</Button>  */}
 
         <View style={styles.footer}>
           <Text appearance="hint" category="c1">
