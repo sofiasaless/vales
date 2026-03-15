@@ -92,16 +92,13 @@ export const ListaFuncionarios = () => {
     useCallback(() => {
       if (isLoadingMensalidades) return;
       if (mensalidades) {
-        if (mensalidades.at(0)?.status != 'PAGO') {
+        if (mensalidades.at(0)?.status === "VENCIDO") {
           Alert.alert(
-            "Mensalidade Pendente",
-            "A mensalidade atual do Vales App está disponível. Verifique a seção de mensalidades e efetue o pagamento para continuar usando o aplicativo completo!",
+            "Mensalidade Vencida",
+            "A mensalidade atual está vencida. Verifique a seção de mensalidades e efetue o pagamento para continuar usando o aplicativo completo!",
             [
               {
-                text: 'Pagar depois'
-              },
-              {
-                text: 'Verificar',
+                text: "Verificar",
                 onPress: () =>
                   navigation.navigate("Mensalidades", {
                     idRest: res?.uid!,
@@ -111,8 +108,8 @@ export const ListaFuncionarios = () => {
           );
         }
       }
-    }, [isLoadingMensalidades, mensalidades]),
-  );
+    }, [isLoadingMensalidades, mensalidades])
+  )
 
   return (
     <Layout level="1" style={styles.screen}>
