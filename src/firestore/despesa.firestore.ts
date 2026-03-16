@@ -1,4 +1,4 @@
-import { addDoc, doc, getDocs, orderBy, query, where } from "firebase/firestore";
+import { addDoc, deleteDoc, doc, getDocs, orderBy, query, where } from "firebase/firestore";
 import { COLLECTIONS } from "../enums/firebase.enum";
 import { Despesa, DespesaFirestorePostRequestBody, DespesaPostRequestBody } from "../schema/financa.schema";
 import { CategoriaFinancaFirestore } from "./categoriaFinanca.firestore";
@@ -84,6 +84,9 @@ export class DespesaFirestore extends PatternFirestore {
     return despesas
   }
 
+  public async excluirDespesa(idDespesa: string) {
+    await deleteDoc(doc(this.setup(), idDespesa));
+  }
 
 }
 

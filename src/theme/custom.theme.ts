@@ -121,6 +121,8 @@ export const customTheme = {
   'color-danger-500': '#E5533D',
   'color-danger-600': '#C4412E',
 
+  'background-transparent-danger':'#ef6a5b3d',
+
   /* Borders / Inputs */
   'border-basic-color-1': '#2A2F36',
   'border-basic-color-2': '#1F252B',

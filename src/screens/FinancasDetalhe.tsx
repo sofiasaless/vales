@@ -12,18 +12,20 @@ import {
   Spinner,
   Text
 } from '@ui-kitten/components';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   FlatList,
   Platform,
   StyleSheet,
+  TouchableOpacity,
   View
 } from 'react-native';
 import { CardGradient } from '../components/CardGradient';
 import { DinheiroDisplay } from '../components/DinheiroDisplay';
 import { useTotalDespesasContext } from '../context/TotalDespesasContext';
 import { despesaFirestore } from '../firestore/despesa.firestore';
-import { useListarDespesas } from '../hooks/useDespesaFinancas';
+import { useAcoesDespesa, useListarDespesas } from '../hooks/useDespesaFinancas';
 import { colorMap, iconMap } from '../maps/financas.map';
 import { CategoriaFinancas, DespesaPostRequestBody } from '../schema/financa.schema';
 import { customTheme } from '../theme/custom.theme';
@@ -34,6 +36,7 @@ import { converterParaDate } from '../util/datas.util';
 import { useRestauranteConectado } from '../hooks/useRestaurante';
 import { gerarRelatorioDespesas } from '../util/relatorios.util';
 import { AppModal } from '../components/AppModal';
+import { LixeiraItem } from '../components/LixeiraItem';
 
 export default function FinancasDetalhe() {
   const route = useRoute<any>();
@@ -65,6 +68,8 @@ export default function FinancasDetalhe() {
 
   const { adicionarNovaDespesa } = useTotalDespesasContext()
 
+  const { excluirDespesa, adicionarDespesa } = useAcoesDespesa()
+
   const [precoTexto, setPrecoTexto] = useState('');
 
   const totalPeriodo = useMemo(() => {
@@ -74,20 +79,18 @@ export default function FinancasDetalhe() {
   }, [despesas])
 
   const [isAdicionando, setIsAdicionando] = useState(false)
-  const adicionarDespesa = async () => {
+  const handleAdicionar = async () => {
     try {
       setIsAdicionando(true)
       if (!novaDespesa.descricao.trim() || valor <= 0) return;
 
       novaDespesa.valor = Number(valor);
-      await despesaFirestore.criar(categoriaObj.id, novaDespesa);
-      setDataFim(new Date())
-      await refetch()
-      adicionarNovaDespesa(novaDespesa)
-      setNovaDespesa({ descricao: '', valor: 0 });
-      setValor(0)
-      setPrecoTexto('')
-      setModalOpen(false);
+      adicionarDespesa.mutate({
+        props: {
+          idCategoria: categoriaObj.id,
+          body: novaDespesa
+        }
+      });
     } catch (error: any) {
       alert('Ocorreu um erro ao adicionar despesa', error)
     } finally {
@@ -102,6 +105,25 @@ export default function FinancasDetalhe() {
       </Layout>
     );
   }
+
+  useEffect(() => {
+    if (adicionarDespesa.isSuccess && !adicionarDespesa.isPending) {
+      setDataFim(new Date())
+      refetch()
+      adicionarNovaDespesa(novaDespesa)
+      setNovaDespesa({ descricao: '', valor: 0 });
+      setValor(0)
+      setPrecoTexto('')
+      setModalOpen(false);
+      return
+    }
+
+    if (excluirDespesa.isSuccess && !excluirDespesa.isPending) {
+      refetch()
+      return
+    }
+
+  }, [adicionarDespesa.isPending, excluirDespesa.isPending])
 
   return (
     <Layout style={[styles.container, (Platform.OS === 'web') ? { height: '70%' } : { flex: 1 }]}>
@@ -160,6 +182,23 @@ export default function FinancasDetalhe() {
                 <Text status="danger" style={styles.amount}>
                   {formatCurrency(item.valor)}
                 </Text>
+
+                <LixeiraItem action={() => Alert.alert('Apagar registro', `Tem certeza que quer apagar o item "${item.descricao}"?`, [
+                  {
+                    text: 'Cancelar'
+                  },
+                  {
+                    text: 'Confirmar',
+                    onPress: async () => {
+                      excluirDespesa.mutate({
+                        props: {
+                          idDespesa: item.id
+                        }
+                      })
+                    }
+                  }
+                ])
+                } />
               </CardGradient>
             )}
             removeClippedSubviews
@@ -238,7 +277,7 @@ export default function FinancasDetalhe() {
             Cancelar
           </Button>
 
-          <Button disabled={isAdicionando} onPress={adicionarDespesa}>
+          <Button disabled={isAdicionando} onPress={handleAdicionar}>
             {(isAdicionando) ? 'Adicionando...' : 'Adicionar'}
           </Button>
         </View>

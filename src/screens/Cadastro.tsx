@@ -172,7 +172,13 @@ export const Cadastro = () => {
       }
 
       const funcSer = new FuncionarioFirestore()
-      await funcSer.criar(formData);
+      await funcSer.criar({
+        ...formData,
+        cargo: formData.cargo.trim(),
+        nome: formData.nome.trim(),
+        primeiro_dia_pagamento: (formData.tipo === 'DIARISTA') ? 0 : formData.primeiro_dia_pagamento,
+        segundo_dia_pagamento: (formData.tipo === 'DIARISTA') ? 0 : formData.segundo_dia_pagamento,
+      });
       setFormData(emptyFuncionario);
       alert("Sucesso ao cadastrar!", "Vá para área de funcionários para acessar o novo funcionário.")
     } catch (error) {
@@ -201,11 +207,6 @@ export const Cadastro = () => {
             keyboardShouldPersistTaps="handled"
           >
             <View style={styles.card}>
-              <Button size='small' appearance='ghost' status='danger' onPress={() => {
-                setFormData(emptyFuncionario)
-                setsalarioTexto('')
-              }}>Limpar campos para novo contrato</Button>
-
               <AvatarUpload value={formData.foto_url}
                 onChange={(url) => handleChange('foto_url', url)}
               />

@@ -1,32 +1,42 @@
-import AntDesign from '@expo/vector-icons/AntDesign';
-import Feather from '@expo/vector-icons/Feather';
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
-import { useFocusEffect } from '@react-navigation/native';
-import { Layout, Text, useTheme } from '@ui-kitten/components';
-import React, { useCallback, useMemo } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
-import { useFuncionariosRestaurante } from '../hooks/useFuncionarios';
-import { useGerenteConectado } from '../hooks/useGerente';
-import { useIncentivoAtivo } from '../hooks/useIncentivo';
-import { useRestauranteId } from '../hooks/useRestaurante';
-import { Gerente } from '../schema/gerente.schema';
-import { customTheme } from '../theme/custom.theme';
-import { calcularTotalVales } from '../util/calculos.util';
-import { CardGradient } from './CardGradient';
-import { Carregando } from './Carregando';
-import { DinheiroDisplay } from './DinheiroDisplay';
-import { FuncionarioCard } from './FuncionarioCard';
-import { IncentivoAtivoCard } from './IncentivoAtivoCard';
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Feather from "@expo/vector-icons/Feather";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import {
+  NavigationProp,
+  useFocusEffect,
+  useNavigation,
+} from "@react-navigation/native";
+import { Layout, Text, useTheme } from "@ui-kitten/components";
+import React, { useCallback, useEffect, useMemo } from "react";
+import { Alert, FlatList, StyleSheet, View } from "react-native";
+import { useFuncionariosRestaurante } from "../hooks/useFuncionarios";
+import { useGerenteConectado } from "../hooks/useGerente";
+import { useIncentivoAtivo } from "../hooks/useIncentivo";
+import { useListarMensalidades } from "../hooks/useMensalidades";
+import { useRestauranteId } from "../hooks/useRestaurante";
+import { RootStackParamList } from "../routes/StackRoutes";
+import { Gerente } from "../schema/gerente.schema";
+import { customTheme } from "../theme/custom.theme";
+import { calcularTotalVales } from "../util/calculos.util";
+import { CardGradient } from "./CardGradient";
+import { Carregando } from "./Carregando";
+import { DinheiroDisplay } from "./DinheiroDisplay";
+import { FuncionarioCard } from "./FuncionarioCard";
+import { IncentivoAtivoCard } from "./IncentivoAtivoCard";
 
 export const ListaFuncionarios = () => {
-  const { data: gerente } = useGerenteConectado()
+  const { data: gerente } = useGerenteConectado();
   const styles = style(gerente);
 
   const theme = useTheme();
 
   const EmptyState = () => (
     <View style={styles.empty}>
-      <AntDesign name="usergroup-delete" size={46} color={theme['text-hint-color']} />
+      <AntDesign
+        name="usergroup-delete"
+        size={46}
+        color={theme["text-hint-color"]}
+      />
       <Text appearance="hint" style={styles.emptyText}>
         Nenhum funcionário cadastrado
       </Text>
@@ -36,49 +46,84 @@ export const ListaFuncionarios = () => {
     </View>
   );
 
-  const { data: res, isLoading: carregandoRes } = useRestauranteId()
+  const { data: res, isLoading: carregandoRes } = useRestauranteId();
 
-  const { data: funcionarios, isLoading, refetch } = useFuncionariosRestaurante(res?.uid || '')
+  const {
+    data: funcionarios,
+    isLoading,
+    refetch,
+  } = useFuncionariosRestaurante(res?.uid || "");
 
-  const { data: incentivo_ativo, isLoading: carregandoIncentivoAtivo, refetch: recarregarIncentivo } = useIncentivoAtivo(res?.uid || '');
-
+  const {
+    data: incentivo_ativo,
+    isLoading: carregandoIncentivoAtivo,
+    refetch: recarregarIncentivo,
+  } = useIncentivoAtivo(res?.uid || "");
 
   const valesAbertos = useMemo(() => {
     return funcionarios?.reduce((acc, func) => {
-      return acc + calcularTotalVales(func.vales)
-    }, 0)
-  }, [funcionarios])
+      return acc + calcularTotalVales(func.vales);
+    }, 0);
+  }, [funcionarios]);
 
   const funcComVales = useMemo(() => {
     return funcionarios?.reduce((acc, func) => {
       if (func.vales.length > 0) {
-        return acc + 1
+        return acc + 1;
       }
-      return acc + 0
-    }, 0)
-  }, [funcionarios])
+      return acc + 0;
+    }, 0);
+  }, [funcionarios]);
 
   useFocusEffect(
     useCallback(() => {
       if (carregandoRes) return;
-      refetch()
-      recarregarIncentivo()
-    }, [carregandoRes])
+      refetch();
+      recarregarIncentivo();
+    }, [carregandoRes]),
   );
+
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
+  const { data: mensalidades, isLoading: isLoadingMensalidades } =
+    useListarMensalidades(res?.uid!, isLoading);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isLoadingMensalidades) return;
+      if (mensalidades) {
+        if (mensalidades.at(0)?.status === "VENCIDO") {
+          Alert.alert(
+            "Mensalidade Vencida",
+            "A mensalidade atual está vencida. Verifique a seção de mensalidades e efetue o pagamento para continuar usando o aplicativo completo!",
+            [
+              {
+                text: "Verificar",
+                onPress: () =>
+                  navigation.navigate("Mensalidades", {
+                    idRest: res?.uid!,
+                  }),
+              },
+            ],
+          );
+        }
+      }
+    }, [isLoadingMensalidades, mensalidades])
+  )
 
   return (
     <Layout level="1" style={styles.screen}>
-      {incentivo_ativo &&
+      {incentivo_ativo && (
         <View style={[{ marginBottom: 10 }, styles.controleUsuario]}>
           <IncentivoAtivoCard incentivo={incentivo_ativo} />
         </View>
-      }
+      )}
 
       <View style={[styles.summaryGrid, styles.controleUsuario]}>
         {/* Total Employees */}
         <CardGradient styles={styles.summaryCard}>
           <View style={styles.row}>
-            <Feather name="users" size={16} color={theme['text-hint-color']} />
+            <Feather name="users" size={16} color={theme["text-hint-color"]} />
             <Text category="c1" appearance="hint">
               Total
             </Text>
@@ -96,13 +141,21 @@ export const ListaFuncionarios = () => {
         {/* Open Vouchers */}
         <CardGradient styles={styles.summaryCard}>
           <View style={styles.row}>
-            <FontAwesome6 name="arrow-trend-up" size={16} color={customTheme['color-primary-600']} />
+            <FontAwesome6
+              name="arrow-trend-up"
+              size={16}
+              color={customTheme["color-primary-600"]}
+            />
             <Text category="c1" status="primary">
               Vales Abertos
             </Text>
           </View>
 
-          <DinheiroDisplay value={valesAbertos || 0} variant='positive' size='md' />
+          <DinheiroDisplay
+            value={valesAbertos || 0}
+            variant="positive"
+            size="md"
+          />
 
           <Text category="c1" appearance="hint" style={styles.mt4}>
             {funcComVales} funcionário(s) com vales
@@ -110,25 +163,24 @@ export const ListaFuncionarios = () => {
         </CardGradient>
       </View>
 
-      {
-        (isLoading) ?
-          <Carregando />
-          :
-          <FlatList
-            showsVerticalScrollIndicator={false}
-            data={funcionarios}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            columnWrapperStyle={styles.column}
-            contentContainerStyle={styles.list}
-            renderItem={({ item }) => (
-              <View style={styles.employeeItem}>
-                <FuncionarioCard employee={item} />
-              </View>
-            )}
-            ListEmptyComponent={<EmptyState />}
-          />
-      }
+      {isLoading ? (
+        <Carregando />
+      ) : (
+        <FlatList
+          showsVerticalScrollIndicator={false}
+          data={funcionarios}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          columnWrapperStyle={styles.column}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => (
+            <View style={styles.employeeItem}>
+              <FuncionarioCard employee={item} />
+            </View>
+          )}
+          ListEmptyComponent={<EmptyState />}
+        />
+      )}
     </Layout>
   );
 };
@@ -136,7 +188,11 @@ export const ListaFuncionarios = () => {
 const style = (gerente: Gerente | null | undefined) => {
   return StyleSheet.create({
     controleUsuario: {
-      display: (gerente) ? ((gerente.tipo === 'AUXILIAR') ? 'none' : 'flex') : 'flex'
+      display: gerente
+        ? gerente.tipo === "AUXILIAR"
+          ? "none"
+          : "flex"
+        : "flex",
     },
     screen: {
       flex: 1,
@@ -146,7 +202,7 @@ const style = (gerente: Gerente | null | undefined) => {
 
     /* Summary cards */
     summaryGrid: {
-      flexDirection: 'row',
+      flexDirection: "row",
       gap: 12,
       marginBottom: 24,
     },
@@ -158,8 +214,8 @@ const style = (gerente: Gerente | null | undefined) => {
     },
 
     row: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       gap: 6,
       marginBottom: 4,
     },
@@ -187,7 +243,7 @@ const style = (gerente: Gerente | null | undefined) => {
     },
 
     empty: {
-      alignItems: 'center',
+      alignItems: "center",
       marginTop: 48,
     },
     emptyText: {
@@ -195,6 +251,4 @@ const style = (gerente: Gerente | null | undefined) => {
       marginBottom: 4,
     },
   });
-
-}
-
+};

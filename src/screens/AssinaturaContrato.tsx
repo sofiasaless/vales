@@ -38,6 +38,8 @@ export const AssinaturaContrato = () => {
       const cloudnary_url = await uploadAssinaturaCloudinary(assinaturaBase64);
       const funcionarioPronto: FuncionarioPostRequestBody = {
         ...funcObj,
+        nome: funcObj.nome.trim(),
+        cargo: funcObj.cargo.trim(),
         contrato: {
           contratacao_regime_ctl: funcObj.contrato?.contratacao_regime_ctl || false,
           descricao_servicos: funcObj.contrato?.descricao_servicos || '',
@@ -48,13 +50,22 @@ export const AssinaturaContrato = () => {
         }
       }
 
+      if (funcionarioPronto.tipo === 'DIARISTA') {
+        funcionarioPronto.segundo_dia_pagamento = 0;
+        funcionarioPronto.primeiro_dia_pagamento = 0;
+      }
+
       const funcSer = new FuncionarioFirestore()
       await funcSer.criar(funcionarioPronto);
       Alert.alert("Sucesso ao contratar!", "Confira na área de funcionários, o contrato estará disponível no perfil.", [{
         text: 'Confirmar',
         onPress: () => {
           signatureRef.current?.limpar()
-          navigator.goBack()
+          // a pilha precisa ser limpa para ir até a tela inicial, pois ocorre erro ao abrir a tela de assinatura e é possível de voltar para a tela anterior
+          navigator.reset({
+            index: 0,
+            routes: [{ name: 'Tabs' }],
+          });
         }
       }])
     } catch (error: any) {

@@ -4,6 +4,7 @@ export type Restaurante = {
   email: string,
   ativo: boolean,
   data_criacao: Date,
+  foto_url?: string,
   pushTokens?: string[]
 }
 

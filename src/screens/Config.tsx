@@ -32,7 +32,7 @@ export const Config = () => {
       }}>registrar cardápio</Button>
 
       <Button onPress={() => {
-        mensalidadeFirestore.criar()
+        mensalidadeFirestore.criar('yoOivxwD7aesIi3y1SGK1ck5iHj2')
       }}>criar mensalidades</Button>
     </Layout>
   )

@@ -21,7 +21,7 @@ import { ItemVale } from '../components/ItemVale';
 import { useEventoAlteracoesContext } from '../context/EventoAlteracaoContext';
 import { useFuncionarios } from '../hooks/useFuncionarios';
 import { useGerenteConectado } from '../hooks/useGerente';
-import { useVales } from '../hooks/useVales';
+import { useListarVales, useVales } from '../hooks/useVales';
 import { RootStackParamList } from '../routes/StackRoutes';
 import { Gerente } from '../schema/gerente.schema';
 import { Vale, ValeDinheiroPostRequestBody } from '../schema/vale.shema';
@@ -55,7 +55,9 @@ export const GerenciaVales = () => {
 
   const [modalVisible, setModalVisible] = useState(false);
 
-  const { adicionarVale, isLoading: carregando, removerVale, isLoadingVales, listarVales, vales } = useVales()
+  const { adicionarVale, isLoading: carregando, removerVale, isLoadingVales } = useVales()
+
+  const { data: vales, refetch } = useListarVales(idFunc)
 
   const [precoTexto, setPrecoTexto] = useState('');
 
@@ -68,7 +70,7 @@ export const GerenciaVales = () => {
         text: "Confirmar",
         onPress: async () => {
           await removerVale(idFunc, valeToRemove);
-          listarVales(idFunc);
+          refetch()
         }
       }
     ])
@@ -94,7 +96,7 @@ export const GerenciaVales = () => {
     })
 
     if (res.ok) {
-      listarVales(idFunc);
+      refetch()
     } else {
       alert('Ocorreu um erro ao adicionar os vales', res.message)
     }
@@ -109,7 +111,7 @@ export const GerenciaVales = () => {
 
   useEffect(() => {
     encontrarPorId(idFunc);
-    listarVales(idFunc)
+    refetch()
   }, [idFunc, novaAdicaoVale])
 
   return (

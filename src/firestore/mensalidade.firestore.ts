@@ -1,7 +1,7 @@
-import { getDocs, orderBy, query, where } from "firebase/firestore";
+import { addDoc, doc, getDocs, orderBy, query, where } from "firebase/firestore";
 import { RestauranteSerivce } from "../auth/restaurante.service";
 import { COLLECTIONS } from "../enums/firebase.enum";
-import { Mensalidade } from "../schema/mensalidade.schema";
+import { Mensalidade, MensalidadePostRequestBody } from "../schema/mensalidade.schema";
 import { PatternFirestore } from "./pattern.firestore";
 
 export class MensalidadeFirestore extends PatternFirestore {
@@ -11,7 +11,16 @@ export class MensalidadeFirestore extends PatternFirestore {
     super(COLLECTIONS.MENSALIDADE)
   }
 
-  async criar() {
+  async criar(idRest: string) {
+    const bodyToSave = {
+      data_vencimento: new Date(),
+      valor: 89.99,
+      link: '00020126650014br.gov.bcb.pix0122widneylima21@gmail.com0217Vales Restaurante520400005303986540589.905802BR5919ANTONIO WIDNEY LIMA6007QUIXADA62290525ir4M3OOFrhJ6aecfiGxP5pz9L63042448',
+      data_criacao: new Date(),
+      restaurante_ref: doc(this.setup(), idRest),
+      status: 'PENDENTE'
+    }
+    await addDoc(this.setup(), bodyToSave);
   }
 
   async listar(idRest: string) {
