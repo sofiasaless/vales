@@ -8,12 +8,7 @@ export function useGerenteConectado() {
   return useQuery({
     queryKey: ["gerente_conectado"],
     queryFn: async () => {
-      let string_res
-      if (Platform.OS === 'web') {
-        string_res = localStorage.getItem('gerente')
-      } else {
-        string_res = await AsyncStorage.getItem('gerente')
-      }
+      const string_res = await AsyncStorage.getItem('gerente')
 
       if (string_res) {
         const res = JSON.parse(string_res) as Gerente

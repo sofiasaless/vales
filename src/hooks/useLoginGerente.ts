@@ -1,51 +1,52 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { GerenteService } from "../auth/gerente.service";
 import { GerenteFirestore } from "../firestore/gerente.firestore";
-import { Gerente } from "../schema/gerente.schema";
-import { errorHookResponse, successHookResponse } from "../types/hookResponse.type";
+import { AutenticarGerenteDTO, Gerente } from "../schema/gerente.schema";
+import { GerenteService } from "../services/gerente.service";
+import { errorHookResponse } from "../types/hookResponse.type";
 import { usePushNotifications } from "./usePushNotifications";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const gerenteService = new GerenteService();
 
 export function useLoginGerente() {
+  const queryClient = useQueryClient();
+  usePushNotifications();
 
-  usePushNotifications()
+  const gerenteFirestore = new GerenteFirestore();
 
-  const gerenteSerivce = new GerenteService()
-  const gerenteFirestore = new GerenteFirestore()
+  const autenticar = useMutation({
+    mutationFn: ({ form }: { form: AutenticarGerenteDTO }) =>
+      gerenteService.autenticar(form),
 
-  const [isLoading, setIsLoading] = useState(false)
-  const entrarComGerente = async (idRestaurante: string, id: string, senha: string) => {
-    setIsLoading(true)
-    try {
-      const res = await gerenteSerivce.logar(idRestaurante, id, senha);
-      await AsyncStorage.setItem('gerente', JSON.stringify(res));
-      return successHookResponse()
-    } catch (error: any) {
-      return errorHookResponse(error);
-    } finally {
-      setIsLoading(false)
-    }
-  }
+    onSuccess: async (data) => {
+      const sucessResult = data?.usuario
+      if (sucessResult) await AsyncStorage.setItem("gerente", JSON.stringify(sucessResult));
+    },
 
-  const [gerentes, setGerentes] = useState<Gerente[]>()
-  const [isLoadingGerentes, setIsLoadingGerentes] = useState(false)
+    onError: (error) => {
+      console.error("Erro ao autenticar gerente conectado ", error);
+    },
+  });
+
+  const [gerentes, setGerentes] = useState<Gerente[]>();
+  const [isLoadingGerentes, setIsLoadingGerentes] = useState(false);
   const listarGerentes = async (idRestaurante: string) => {
     try {
-      setIsLoadingGerentes(true)
+      setIsLoadingGerentes(true);
       const res = await gerenteFirestore.listar(idRestaurante);
-      setGerentes(res)
+      setGerentes(res);
     } catch (error) {
-      return errorHookResponse(error)
+      return errorHookResponse(error);
     } finally {
-      setIsLoadingGerentes(false)
+      setIsLoadingGerentes(false);
     }
-  }
+  };
 
   return {
-    isLoading,
-    entrarComGerente,
     gerentes,
     isLoadingGerentes,
-    listarGerentes
-  }
+    listarGerentes,
+    autenticar,
+  };
 }
