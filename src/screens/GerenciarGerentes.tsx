@@ -1,33 +1,33 @@
-import { useRoute } from '@react-navigation/native';
+import { useRoute } from "@react-navigation/native";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Button,
   Divider,
-  IndexPath,
   Input,
   Layout,
-  Modal,
   Radio,
   RadioGroup,
-  Select,
-  SelectItem,
   Spinner,
-  Text,
-} from '@ui-kitten/components';
-import React, { useState } from 'react';
+  Text
+} from "@ui-kitten/components";
+import React, { useState } from "react";
+import { Alert, FlatList, StyleSheet, View } from "react-native";
+import { AppModal } from "../components/AppModal";
+import { AvatarIniciais } from "../components/AvatarIniciais";
+import { CardGradient } from "../components/CardGradient";
+import { gerenteFirestore } from "../firestore/gerente.firestore";
 import {
-  Alert,
-  FlatList,
-  StyleSheet,
-  View
-} from 'react-native';
-import { AvatarIniciais } from '../components/AvatarIniciais';
-import { CardGradient } from '../components/CardGradient';
-import { useGerenteConectado, useListarGerentes } from '../hooks/useGerente';
-import { Gerente, GerentePostRequestBody, GerenteUpdateRequestBody, TiposGerente } from '../schema/gerente.schema';
-import { gerenteFirestore } from '../firestore/gerente.firestore';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { converterTimestamp } from '../util/formatadores.util';
-import { AppModal } from '../components/AppModal';
+  useAcoesGerente,
+  useGerenteConectado,
+  useListarGerentes,
+} from "../hooks/useGerente";
+import {
+  Gerente,
+  GerentePostRequestBody,
+  GerenteUpdateDTO,
+  TiposGerente
+} from "../schema/gerente.schema";
+import { converterTimestamp } from "../util/formatadores.util";
 
 type CriarGerenteInput = {
   idRestaurante: string;
@@ -35,10 +35,10 @@ type CriarGerenteInput = {
 };
 
 const bodyVazio: GerentePostRequestBody = {
-  nome: '',
-  senha: '',
-  tipo: 'AUXILIAR'
-}
+  nome: "",
+  senha: "",
+  tipo: "AUXILIAR",
+};
 
 export default function GerenciarGerentes() {
   const route = useRoute();
@@ -49,18 +49,20 @@ export default function GerenciarGerentes() {
   const queryClient = useQueryClient();
 
   const { data: gerentes, isLoading } = useListarGerentes(idRest);
-  const { data: gerente_conectado } = useGerenteConectado()
+  const { data: gerente_conectado } = useGerenteConectado();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [editing, setEditing] = useState<Gerente | null>(null);
 
-  const [form, setForm] = useState<GerentePostRequestBody>(bodyVazio)
+  const [form, setForm] = useState<GerentePostRequestBody>(bodyVazio);
+
+  const { atualizar } = useAcoesGerente();
 
   const tipoSelecionado: TiposGerente =
-    selectedIndex === 0 ? 'GERENTE' : 'AUXILIAR';
+    selectedIndex === 0 ? "GERENTE" : "AUXILIAR";
 
   function resetForm() {
-    setForm(bodyVazio)
+    setForm(bodyVazio);
     setSelectedIndex(0);
     setEditing(null);
   }
@@ -74,12 +76,12 @@ export default function GerenciarGerentes() {
     setEditing(gerente);
     setForm({
       nome: gerente.nome,
-      senha: gerente.senha,
-      tipo: gerente.tipo
-    })
-    setSelectedIndex((gerente.tipo === 'GERENTE') ? 0 : 1);
+      senha: "",
+      tipo: gerente.tipo,
+    });
+    setSelectedIndex(gerente.tipo === "GERENTE" ? 0 : 1);
     setModalVisible(true);
-  }
+  };
 
   const criarGerenteMutation = useMutation({
     mutationFn: ({ idRestaurante, body }: CriarGerenteInput) =>
@@ -87,85 +89,71 @@ export default function GerenciarGerentes() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['gerentes'],
+        queryKey: ["gerentes"],
       });
     },
 
     onError: (error) => {
-      console.error('Erro ao criar gerente', error);
-    },
-  });
-
-  const atualizarGerenteMutation = useMutation({
-    mutationFn: ({ props }: {
-      props: {
-        idGerente: string, body: Partial<GerenteUpdateRequestBody>,
-        idRestaurante: string
-      }
-    }) => gerenteFirestore.atualizar(props.idRestaurante, props.idGerente, props.body),
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['gerentes'],
-      });
-    },
-
-    onError: (error) => {
-      console.error('Erro ao atualizar gerente', error);
+      console.error("Erro ao criar gerente", error);
     },
   });
 
   const excluirGerenteMutation = useMutation({
-    mutationFn: ({ props }: {
+    mutationFn: ({
+      props,
+    }: {
       props: {
-        idGerente: string,
-        idRestaurante: string
-      }
+        idGerente: string;
+        idRestaurante: string;
+      };
     }) => gerenteFirestore.excluir(props.idRestaurante, props.idGerente),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['gerentes'],
+        queryKey: ["gerentes"],
       });
     },
 
     onError: (error) => {
-      console.error('Erro ao atualizar gerente', error);
+      console.error("Erro ao atualizar gerente", error);
     },
   });
 
   const handleSave = async () => {
     if (!form.nome.trim()) {
-      Alert.alert('Erro', 'Nome é obrigatório');
+      Alert.alert("Erro", "Nome é obrigatório");
       return;
     }
 
     if (!editing && !form.senha) {
-      Alert.alert('Erro', 'Senha é obrigatória');
+      Alert.alert("Erro", "Senha é obrigatória");
       return;
     }
 
     form.tipo = tipoSelecionado;
 
     if (editing) {
-      atualizarGerenteMutation.mutate({
-        props: {
-          body: form,
-          idGerente: editing.id,
-          idRestaurante: idRest
-        }
-      })
+      const toSend: GerenteUpdateDTO = {
+        id: editing.id,
+        nome: form.nome,
+        tipo: form.tipo
+      }
+      if (form.senha != '') {
+        toSend.senha = form.senha
+      }
+      await atualizar.mutateAsync({
+        props: toSend,
+      });
     } else {
       criarGerenteMutation.mutate({
         idRestaurante: idRest,
-        body: form
-      })
+        body: form,
+      });
     }
 
     setModalVisible(false);
     resetForm();
-  }
-
+  };
 
   return (
     <Layout style={styles.container}>
@@ -175,97 +163,109 @@ export default function GerenciarGerentes() {
         Cadastrar Novo Usuário
       </Button>
 
-      {
-        (isLoading) ?
-          <Spinner />
-          :
-          <FlatList
-            data={gerentes}
-            keyExtractor={item => item.id}
-            renderItem={(usuario) => (
-              <CardGradient styles={[styles.item, !usuario.item.ativo && styles.inactive]}>
-                <View style={styles.itemHeader}>
-                  <AvatarIniciais name={usuario.item.nome} />
+      {isLoading ? (
+        <Spinner />
+      ) : (
+        <FlatList
+          data={gerentes}
+          keyExtractor={(item) => item.id}
+          renderItem={(usuario) => (
+            <CardGradient
+              styles={[styles.item, !usuario.item.ativo && styles.inactive]}
+            >
+              <View style={styles.itemHeader}>
+                <AvatarIniciais name={usuario.item.nome} />
 
-                  <View style={styles.info}>
-                    <Text category="s1">{usuario.item.nome}</Text>
-                    <Text appearance="hint" category="c1">
-                      {usuario.item.tipo}
-                    </Text>
-                    <Text appearance="hint" category="c2">
-                      Criado em {converterTimestamp(usuario.item.data_criacao).toLocaleDateString()}
-                    </Text>
-                  </View>
+                <View style={styles.info}>
+                  <Text category="s1">{usuario.item.nome}</Text>
+                  <Text appearance="hint" category="c1">
+                    {usuario.item.tipo}
+                  </Text>
+                  <Text appearance="hint" category="c2">
+                    Criado em{" "}
+                    {converterTimestamp(
+                      usuario.item.data_criacao,
+                    ).toLocaleDateString()}
+                  </Text>
                 </View>
+              </View>
 
-                <View style={styles.actions}>
-                  <Button
-                    size="small"
-                    appearance="ghost"
-                    onPress={() => openEdit(usuario.item)}
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    size="small"
-                    appearance="ghost"
-                    disabled={((gerente_conectado?.id === usuario.item.id) || atualizarGerenteMutation.isPending)}
-                    onPress={() => atualizarGerenteMutation.mutate({
+              <View style={styles.actions}>
+                <Button
+                  size="small"
+                  appearance="ghost"
+                  onPress={() => openEdit(usuario.item)}
+                >
+                  Editar
+                </Button>
+                <Button
+                  size="small"
+                  appearance="ghost"
+                  disabled={
+                    gerente_conectado?.id === usuario.item.id ||
+                    atualizar.isPending
+                  }
+                  onPress={() =>
+                    atualizar.mutate({
                       props: {
-                        body: { ativo: !usuario.item.ativo },
-                        idGerente: usuario.item.id,
-                        idRestaurante: idRest
-                      }
-                    })}
-                  >
-                    {usuario.item.ativo ? 'Desativar' : 'Ativar'}
-                  </Button>
-                  <Button
-                    size="small"
-                    appearance="ghost"
-                    status="danger"
-                    disabled={(gerente_conectado?.id === usuario.item.id) || excluirGerenteMutation.isPending}
-                    onPress={() => excluirGerenteMutation.mutate({
+                        id: usuario.item.id,
+                        ativo: !usuario.item.ativo,
+                      },
+                    })
+                  }
+                >
+                  {usuario.item.ativo ? "Desativar" : "Ativar"}
+                </Button>
+                <Button
+                  size="small"
+                  appearance="ghost"
+                  status="danger"
+                  disabled={
+                    gerente_conectado?.id === usuario.item.id ||
+                    excluirGerenteMutation.isPending
+                  }
+                  onPress={() =>
+                    excluirGerenteMutation.mutate({
                       props: {
                         idGerente: usuario.item.id,
-                        idRestaurante: idRest
-                      }
-                    })}
-                  >
-                    Excluir
-                  </Button>
-                </View>
-              </CardGradient>
-            )}
-            contentContainerStyle={styles.list}
-            windowSize={5}
-            maxToRenderPerBatch={10}
-            initialNumToRender={10}
-          />
-      }
+                        idRestaurante: idRest,
+                      },
+                    })
+                  }
+                >
+                  Excluir
+                </Button>
+              </View>
+            </CardGradient>
+          )}
+          contentContainerStyle={styles.list}
+          windowSize={5}
+          maxToRenderPerBatch={10}
+          initialNumToRender={10}
+        />
+      )}
 
       <AppModal visible={modalVisible} onClose={() => setModalVisible(false)}>
         <Layout style={styles.modal}>
-
           <Text category="h6" style={styles.modalTitle}>
-            {editing ? 'Editar Usuário' : 'Novo Usuário'}
+            {editing ? "Editar Usuário" : "Novo Usuário"}
           </Text>
 
           <Input
             label="Nome"
             value={form.nome}
-            onChangeText={(e) => setForm(prev => ({
-              ...prev,
-              nome: e
-            }))}
+            onChangeText={(e) =>
+              setForm((prev) => ({
+                ...prev,
+                nome: e,
+              }))
+            }
             style={styles.input}
           />
 
           <RadioGroup
             selectedIndex={selectedIndex}
-            onChange={(index) =>
-              setSelectedIndex(index)
-            }
+            onChange={(index) => setSelectedIndex(index)}
           >
             <Radio>Gerente</Radio>
             <Radio>Auxiliar</Radio>
@@ -275,10 +275,12 @@ export default function GerenciarGerentes() {
             label="Senha"
             secureTextEntry
             value={form.senha}
-            onChangeText={(e) => setForm(prev => ({
-              ...prev,
-              senha: e
-            }))}
+            onChangeText={(e) =>
+              setForm((prev) => ({
+                ...prev,
+                senha: e,
+              }))
+            }
             style={styles.input}
           />
 
@@ -286,13 +288,16 @@ export default function GerenciarGerentes() {
             <Button appearance="ghost" onPress={() => setModalVisible(false)}>
               Cancelar
             </Button>
-            <Button disabled={criarGerenteMutation.isPending} onPress={handleSave}>
-              {editing ? 'Salvar' : 'Cadastrar'}
+            <Button
+              disabled={criarGerenteMutation.isPending}
+              onPress={handleSave}
+            >
+              {editing ? "Salvar" : "Cadastrar"}
             </Button>
           </View>
         </Layout>
-      </AppModal >
-    </Layout >
+      </AppModal>
+    </Layout>
   );
 }
 
@@ -302,10 +307,10 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
     padding: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
 
   addButton: {
@@ -315,12 +320,12 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: 16,
     paddingBottom: 32,
-    gap: 10
+    gap: 10,
   },
 
   item: {
     padding: 14,
-    borderRadius: 16
+    borderRadius: 16,
   },
 
   inactive: {
@@ -328,18 +333,18 @@ const styles = StyleSheet.create({
   },
 
   itemHeader: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
 
   avatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#e0edff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#e0edff",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   info: {
@@ -347,8 +352,8 @@ const styles = StyleSheet.create({
   },
 
   actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "flex-end",
     gap: 8,
     marginTop: 8,
   },
@@ -368,13 +373,13 @@ const styles = StyleSheet.create({
   },
 
   modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "flex-end",
     gap: 12,
     marginTop: 8,
   },
 
   backdrop: {
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
 });

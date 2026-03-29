@@ -36,6 +36,14 @@ export interface AutenticarGerenteDTO {
   senha: string;
 }
 
+export interface GerenteUpdateDTO {
+  id: string;
+  nome?: string;
+  tipo?: TiposGerente;
+  ativo?: boolean;
+  senha?: string;
+}
+
 export interface AutenticateResponseBody {
   resultado: boolean;
   mensagem: string;
