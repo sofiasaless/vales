@@ -1,89 +1,119 @@
-import AntDesign from '@expo/vector-icons/AntDesign';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { NavigationProp, useFocusEffect, useNavigation } from '@react-navigation/native';
+import AntDesign from "@expo/vector-icons/AntDesign";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  NavigationProp,
+  useFocusEffect,
+  useNavigation,
+} from "@react-navigation/native";
 import {
   Button,
   Input,
   Radio,
   RadioGroup,
   Spinner,
-  Text
-} from '@ui-kitten/components';
-import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Image, StyleSheet, View } from 'react-native';
-import { CardGradient } from '../components/CardGradient';
-import { useLoginGerente } from '../hooks/useLoginGerente';
-import { useRestauranteConectado, useRestauranteId } from '../hooks/useRestaurante';
-import { RootStackParamList } from '../routes/StackRoutes';
-import { useGerenteConectado, useListarGerentes } from '../hooks/useGerente';
-import { restauranteFirestore } from '../firestore/restaurante.firestore';
-import * as Updates from 'expo-updates';
-import { customTheme } from '../theme/custom.theme';
-import { AvatarIniciais } from '../components/AvatarIniciais';
+  Text,
+} from "@ui-kitten/components";
+import * as Updates from "expo-updates";
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  StyleSheet,
+  View,
+} from "react-native";
+import { CardGradient } from "../components/CardGradient";
+import { restauranteFirestore } from "../firestore/restaurante.firestore";
+import { useGerenteConectado, useListarGerentes } from "../hooks/useGerente";
+import { useLoginGerente } from "../hooks/useLoginGerente";
+import {
+  useRestauranteConectado,
+  useRestauranteId,
+} from "../hooks/useRestaurante";
+import { RootStackParamList } from "../routes/StackRoutes";
+import { customTheme } from "../theme/custom.theme";
 
 export const LoginGerente: React.FC = () => {
-
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
-  const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState<{ manager?: string; password?: string }>({});
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<{ manager?: string; password?: string }>(
+    {},
+  );
 
-  const navigator = useNavigation<NavigationProp<RootStackParamList>>()
+  const navigator = useNavigation<NavigationProp<RootStackParamList>>();
 
-  const { entrarComGerente, isLoading } = useLoginGerente()
+  const { autenticar } = useLoginGerente();
+
+  const { data: restaurante_conectado, isLoading: loadingRes } =
+    useRestauranteConectado();
+
+  const { data: res_id } = useRestauranteId();
 
   const {
-    data: restaurante_conectado,
-    isLoading: loadingRes
-  } = useRestauranteConectado()
-
-  const { data: res_id } = useRestauranteId()
-
-  const { data: gerentes, isLoading: isLoadingGerentes, refetch: recarregarGerentes } = useListarGerentes(res_id?.uid || '')
+    data: gerentes,
+    isLoading: isLoadingGerentes,
+    refetch: recarregarGerentes,
+  } = useListarGerentes(res_id?.uid || "");
 
   const validateForm = (): boolean => {
     const newErrors: { manager?: string; password?: string } = {};
 
     if (!password) {
-      newErrors.password = 'Senha é obrigatória';
+      newErrors.password = "Senha é obrigatória";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const { refetch } = useGerenteConectado()
+  const { refetch } = useGerenteConectado();
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
-    let restauranteId = await AsyncStorage.getItem('uid')
+    let restauranteId = await AsyncStorage.getItem("uid");
 
     if (restauranteId && gerentes) {
-      const res = await entrarComGerente(restauranteId, gerentes.at(selectedIndex)?.id || '', password)
-      if (!res.ok) {
-        const newErrors: { manager?: string; password?: string } = {};
-        newErrors.password = res.message
-        setErrors(newErrors);
-      } else {
-        const tokenNotificao = await AsyncStorage.getItem('pushToken')
-        if (tokenNotificao) {
-          restauranteFirestore.atualizarPushToken(res_id?.uid || '', tokenNotificao)
-        }
-        await refetch()
-        navigator.navigate('Tabs')
-      }
+      await autenticar.mutateAsync({
+        form: {
+          id: gerentes.at(selectedIndex)?.id || "",
+          senha: password,
+        },
+      });
     }
-
   };
 
   useFocusEffect(
     useCallback(() => {
       if (res_id) recarregarGerentes();
-    }, [res_id])
-  )
+    }, [res_id]),
+  );
+
+  useEffect(() => {
+    const verificarAutenticacao = async () => {
+      if (autenticar.isSuccess) {
+        if (!autenticar.data.resultado) {
+          const newErrors: { manager?: string; password?: string } = {};
+          newErrors.password = autenticar.data?.mensagem;
+          setErrors(newErrors);
+        } else {
+          const tokenNotificao = await AsyncStorage.getItem("pushToken");
+          if (tokenNotificao) {
+            restauranteFirestore.atualizarPushToken(
+              res_id?.uid || "",
+              tokenNotificao,
+            );
+          }
+          await refetch();
+          navigator.navigate("Tabs");
+        }
+      }
+    };
+
+    verificarAutenticacao();
+  }, [autenticar.isError, autenticar.isSuccess, autenticar.isPending]);
 
   const [checking, setChecking] = useState(true);
-
   useEffect(() => {
     async function checkForUpdates() {
       try {
@@ -92,51 +122,70 @@ export const LoginGerente: React.FC = () => {
         if (update.isAvailable) {
           // Se existir, pergunta ao usuário se quer atualizar
           Alert.alert(
-            'Atualização disponível',
-            'Uma nova versão do aplicativo está disponível. Deseja atualizar agora?',
+            "Atualização disponível",
+            "Uma nova versão do aplicativo está disponível. Deseja atualizar agora?",
             [
-              { text: 'Depois', style: 'cancel' },
+              { text: "Depois", style: "cancel" },
               {
-                text: 'Atualizar',
+                text: "Atualizar",
                 onPress: async () => {
                   await Updates.fetchUpdateAsync();
                   await Updates.reloadAsync(); // Reinicia o app com a nova versão
                 },
               },
-            ]
+            ],
           );
         }
       } catch (error) {
-        console.log('Erro ao verificar atualizações:', error);
+        console.log("Erro ao verificar atualizações:", error);
       } finally {
         setChecking(false);
       }
     }
-
     checkForUpdates();
   }, []);
 
   if (checking) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
       </View>
     );
   }
 
   return (
-    <CardGradient colors_one='4' colors_two='1' styles={styles.container}>
+    <CardGradient colors_one="4" colors_two="1" styles={styles.container}>
       <View style={styles.header}>
-        {(restaurante_conectado?.foto_url) ?
+        {restaurante_conectado?.foto_url ? (
           <View style={{ marginBottom: 20 }}>
-            <Image style={{ width: 100, height: 100, borderRadius: 100}} source={{ uri: restaurante_conectado.foto_url }} />
+            <Image
+              style={{ width: 100, height: 100, borderRadius: 100 }}
+              source={{ uri: restaurante_conectado.foto_url }}
+            />
           </View>
-          :
-          <View style={{ backgroundColor: customTheme['background-transparent-primary'], padding: 20, borderRadius: 50, marginBottom: 20 }}>
-            <AntDesign name="user-switch" size={40} color={customTheme['color-primary-500']} />
+        ) : (
+          <View
+            style={{
+              backgroundColor: customTheme["background-transparent-primary"],
+              padding: 20,
+              borderRadius: 50,
+              marginBottom: 20,
+            }}
+          >
+            <AntDesign
+              name="user-switch"
+              size={40}
+              color={customTheme["color-primary-500"]}
+            />
           </View>
-        }
-        <Text category="h5" style={[styles.restaurantName, { color: customTheme['color-primary-400'] }]}>
+        )}
+        <Text
+          category="h5"
+          style={[
+            styles.restaurantName,
+            { color: customTheme["color-primary-400"] },
+          ]}
+        >
           {restaurante_conectado?.nome_fantasia}
         </Text>
         <Text appearance="hint" style={styles.subtitle}>
@@ -147,26 +196,23 @@ export const LoginGerente: React.FC = () => {
       {/* Form */}
       <View style={styles.form}>
         <View style={{ marginBottom: 12 }}>
-          <Text category="label" appearance='hint' style={{ marginBottom: 8 }}>
+          <Text category="label" appearance="hint" style={{ marginBottom: 8 }}>
             Selecione o gerente
           </Text>
 
-          {isLoadingGerentes ?
-            <Spinner size='small' />
-            :
+          {isLoadingGerentes ? (
+            <Spinner size="small" />
+          ) : (
             <RadioGroup
               selectedIndex={selectedIndex}
-              onChange={(index) =>
-                setSelectedIndex(index)
-              }
+              onChange={(index) => setSelectedIndex(index)}
             >
               {gerentes?.map((g) => (
                 <Radio key={g.id}>{g.nome}</Radio>
               ))}
             </RadioGroup>
-          }
+          )}
         </View>
-
 
         <Input
           label="Senha"
@@ -174,8 +220,8 @@ export const LoginGerente: React.FC = () => {
           value={password}
           onChangeText={setPassword}
           secureTextEntry
-          keyboardType='number-pad'
-          status={errors.password ? 'danger' : 'primary'}
+          keyboardType="number-pad"
+          status={errors.password ? "danger" : "primary"}
           caption={errors.password}
           style={styles.input}
         />
@@ -184,10 +230,10 @@ export const LoginGerente: React.FC = () => {
           <Button
             size="large"
             onPress={handleSubmit}
-            disabled={isLoading}
+            disabled={autenticar.isPending}
             style={styles.primaryButton}
           >
-            {isLoading ? 'Entrando...' : 'Acessar Sistema'}
+            {autenticar.isPending ? "Entrando..." : "Acessar Sistema"}
           </Button>
         </View>
       </View>
@@ -200,17 +246,17 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 64,
-    justifyContent: 'flex-start',
+    justifyContent: "flex-start",
   },
 
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 32,
   },
 
   restaurantBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     marginBottom: 16,
   },
@@ -220,16 +266,16 @@ const styles = StyleSheet.create({
   },
 
   restaurantName: {
-    fontWeight: '600',
+    fontWeight: "600",
   },
 
   title: {
-    fontWeight: '700',
+    fontWeight: "700",
   },
 
   subtitle: {
     marginTop: 6,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   form: {
@@ -250,11 +296,11 @@ const styles = StyleSheet.create({
   },
 
   backButton: {
-    alignSelf: 'center',
+    alignSelf: "center",
   },
 
   footer: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingBottom: 24,
   },
 
