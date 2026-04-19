@@ -8,11 +8,11 @@ import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect } from "react";
 import { Container } from "../components/Container";
 import { Header } from "../components/Header";
-import { ListaFuncionarios } from "../components/ListaFuncionarios";
 import { useListarMensalidades } from "../hooks/useMensalidades";
 import { useRestauranteConectado } from "../hooks/useRestaurante";
 import { Alert } from "react-native";
 import { RootStackParamList } from "../routes/StackRoutes";
+import { ListaFuncionarios } from "../components/ListaFuncionarios/ListaFuncionarios";
 
 SplashScreen.preventAutoHideAsync();
 

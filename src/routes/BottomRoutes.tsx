@@ -1,12 +1,19 @@
-import { BottomTabNavigationEventMap, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import React from 'react';
+import {
+  BottomTabNavigationEventMap,
+  createBottomTabNavigator,
+} from "@react-navigation/bottom-tabs";
+import React from "react";
 
-import { NavigationHelpers, ParamListBase, TabNavigationState } from '@react-navigation/native';
-import { Cadastro } from '../screens/Cadastro';
-import { Funcionarios } from '../screens/Funcionarios';
-import { BottomNavigation, BottomNavigationTab } from '@ui-kitten/components';
-import { BottomTab } from '../components/BottomTab';
-import { Perfil } from '../screens/Perfil';
+import {
+  NavigationHelpers,
+  ParamListBase,
+  TabNavigationState,
+} from "@react-navigation/native";
+import { Cadastro } from "../screens/Cadastro";
+import { Funcionarios } from "../screens/Funcionarios";
+import { BottomNavigation, BottomNavigationTab } from "@ui-kitten/components";
+import { BottomTab } from "../components/BottomTab";
+import { Perfil } from "../screens/Perfil/PerfilBase/Perfil";
 
 export type BottomTabParamList = {
   Funcionarios: undefined;
@@ -17,28 +24,27 @@ export type BottomTabParamList = {
 const TabStack = createBottomTabNavigator<BottomTabParamList>();
 
 export const BottomTabsRoutes = () => {
-  
   return (
     <TabStack.Navigator
-      screenOptions={{ 
-        headerShown: false
+      screenOptions={{
+        headerShown: false,
       }}
-      tabBar={(props) => <BottomTab {...props}/>}
+      tabBar={(props) => <BottomTab {...props} />}
     >
-      <TabStack.Screen 
-        name="Funcionarios" 
+      <TabStack.Screen
+        name="Funcionarios"
         component={Funcionarios}
-        options={{ title: 'Funcionários' }}
+        options={{ title: "Funcionários" }}
       />
-      <TabStack.Screen 
-        name="Contratar" 
+      <TabStack.Screen
+        name="Contratar"
         component={Cadastro}
-        options={{ title: 'Contratar' }}
+        options={{ title: "Contratar" }}
       />
-      <TabStack.Screen 
-        name="Perfil" 
+      <TabStack.Screen
+        name="Perfil"
         component={Perfil}
-        options={{ title: 'Perfil' }}
+        options={{ title: "Perfil" }}
       />
     </TabStack.Navigator>
   );
