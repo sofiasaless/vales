@@ -5,9 +5,11 @@ import {
   errorHookResponse,
   successHookResponse,
 } from "../types/hookResponse.type";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { converterTimestamp } from "../util/formatadores.util";
+import { FuncionarioService } from "../services/funcionario.service";
 
+const funcionarioService = new FuncionarioService();
 export function useListarVales(idFuncionario: string) {
   return useQuery({
     queryKey: ["vales", idFuncionario],
@@ -15,9 +17,9 @@ export function useListarVales(idFuncionario: string) {
       const res = await funcionarioFirestore.encontrarPorId(idFuncionario);
 
       const valesOrdenados = res.vales.sort((a, b) => {
-        const data1 = converterTimestamp(a.data_adicao)
-        const data2 = converterTimestamp(b.data_adicao)
-        
+        const data1 = converterTimestamp(a.data_adicao);
+        const data2 = converterTimestamp(b.data_adicao);
+
         return data1.getTime() - data2.getTime();
       });
 
@@ -28,33 +30,52 @@ export function useListarVales(idFuncionario: string) {
 }
 
 export function useVales() {
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
 
-  const adicionarVale = async (idFuncionario: string, vale: Vale) => {
-    setIsLoading(true);
-    try {
-      await funcionarioFirestore.adicionarVale(idFuncionario, vale);
-      return successHookResponse();
-    } catch (error: any) {
-      return errorHookResponse(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const adicionarVale = useMutation({
+    mutationFn: ({
+      props,
+    }: {
+      props: {
+        id: string;
+        vale: Vale;
+      };
+    }) => funcionarioService.adicionarVale(props.id, props.vale),
 
-  const adicionarVales = async (id: string, vales: Vale[]) => {
-    setIsLoading(true);
-    try {
-      vales.map(async (v) => {
-        await adicionarVale(id, v);
-      });
-      return successHookResponse();
-    } catch (error: any) {
-      return errorHookResponse(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    onSuccess: () => {
+      console.info("Vale adicionado com sucesso!");
+      // queryClient.invalidateQueries({
+      //   queryKey: ["vales", ],
+      // });
+    },
+
+    onError: (error) => {
+      console.error("Erro adicionar vale ao funcionário ", error);
+    },
+  });
+
+  const adicionarVales = useMutation({
+    mutationFn: ({
+      props,
+    }: {
+      props: {
+        id: string;
+        vales: Vale[];
+      };
+    }) => funcionarioService.adicionarMultiplosVales(props.id, props.vales),
+
+    onSuccess: () => {
+      console.info("Vales adicionados com sucesso!");
+      // queryClient.invalidateQueries({
+      //   queryKey: ["vales"],
+      // });
+    },
+
+    onError: (error) => {
+      console.error("Erro adicionar vales ao funcionário ", error);
+    },
+  });
 
   const removerVale = async (id: string, vale: Vale) => {
     setIsLoading(true);

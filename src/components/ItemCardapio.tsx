@@ -1,29 +1,24 @@
-import { Button, Text } from '@ui-kitten/components';
-import React, { memo, useState } from 'react';
-import {
-  StyleSheet,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import { Button, Text } from "@ui-kitten/components";
+import React, { memo, useState } from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 
-import { ItemMenu } from '../schema/menu.schema';
-import { customTheme } from '../theme/custom.theme';
-import { DinheiroDisplay } from './DinheiroDisplay';
-import { useItensValesActions } from '../context/ItensValeContext';
+import { ItemMenu } from "../schema/menu.schema";
+import { customTheme } from "../theme/custom.theme";
+import { DinheiroDisplay } from "./DinheiroDisplay";
+import { useItensValesActions } from "../context/ItensValeContext";
+import { Gerente } from "../schema/gerente.schema";
 
 interface MenuItemCardProps {
   product: ItemMenu;
+  gerente: Gerente;
 }
 
-export const ItemCardapio = memo(({ product }: MenuItemCardProps) => {
+export const ItemCardapio = memo(({ product, gerente }: MenuItemCardProps) => {
   const [selecionado, setSelecionado] = useState(false);
   const [qtd, setQtd] = useState(0);
 
-  const {
-    adicionarItem,
-    removerItem,
-    atualizarQuantidade,
-  } = useItensValesActions();
+  const { adicionarItem, removerItem, atualizarQuantidade } =
+    useItensValesActions();
 
   const selecionarItem = (acao: boolean) => {
     setSelecionado(acao);
@@ -37,6 +32,7 @@ export const ItemCardapio = memo(({ product }: MenuItemCardProps) => {
         produto_ref: product.id,
         id: Math.random().toString(),
         quantidade: 1,
+        criadoPor: gerente,
       });
     } else {
       setQtd(0);
@@ -48,9 +44,13 @@ export const ItemCardapio = memo(({ product }: MenuItemCardProps) => {
     <TouchableOpacity
       style={[
         styles.container,
-        { 
-          backgroundColor: selecionado ? customTheme["color-primary-900"] : customTheme["color-basic-800"], 
-          borderColor: selecionado ? customTheme['color-primary-300'] : customTheme['color-basic-600']
+        {
+          backgroundColor: selecionado
+            ? customTheme["color-primary-900"]
+            : customTheme["color-basic-800"],
+          borderColor: selecionado
+            ? customTheme["color-primary-300"]
+            : customTheme["color-basic-600"],
         },
       ]}
       onPress={() => selecionarItem(!selecionado)}
@@ -71,7 +71,7 @@ export const ItemCardapio = memo(({ product }: MenuItemCardProps) => {
               if (qtd === 1) {
                 selecionarItem(false);
               } else {
-                setQtd(q => q - 1);
+                setQtd((q) => q - 1);
                 atualizarQuantidade(product.id, -1);
               }
             }}
@@ -86,7 +86,7 @@ export const ItemCardapio = memo(({ product }: MenuItemCardProps) => {
             appearance="ghost"
             disabled={!selecionado}
             onPress={() => {
-              setQtd(q => q + 1);
+              setQtd((q) => q + 1);
               atualizarQuantidade(product.id, 1);
             }}
           >
@@ -98,17 +98,16 @@ export const ItemCardapio = memo(({ product }: MenuItemCardProps) => {
   );
 });
 
-
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
     padding: 16,
     borderRadius: 16,
     borderWidth: 1,
-    backgroundColor: customTheme['color-basic-800'],
-    borderColor: customTheme['color-basic-600'],
+    backgroundColor: customTheme["color-basic-800"],
+    borderColor: customTheme["color-basic-600"],
   },
 
   checkbox: {
@@ -116,9 +115,9 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: customTheme['color-basic-600'],
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: customTheme["color-basic-600"],
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   info: {
@@ -127,23 +126,22 @@ const styles = StyleSheet.create({
   },
 
   right: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
     gap: 6,
   },
 
   quantityContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: customTheme['color-basic-700'],
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: customTheme["color-basic-700"],
     borderRadius: 999,
     paddingHorizontal: 4,
   },
 
   quantityText: {
     width: 28,
-    textAlign: 'center',
-    fontWeight: '600',
-    color: 'white'
+    textAlign: "center",
+    fontWeight: "600",
+    color: "white",
   },
-}
-);
+});
