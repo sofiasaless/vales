@@ -77,7 +77,7 @@ export const LoginGerente: React.FC = () => {
       await autenticar.mutateAsync({
         form: {
           id: gerentes.at(selectedIndex)?.id || "",
-          senha: password,
+          password,
         },
       });
     }
