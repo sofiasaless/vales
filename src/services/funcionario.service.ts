@@ -6,13 +6,13 @@ export class FuncionarioService extends ServicoPadrao {
   protected BASE_PATH: string = "funcionario";
 
   async adicionarVale(id: string, body: Vale) {
-    return await api.put(this.buildUrl(["vale", "adicionar", id]), body);
+    return await api.put(this.buildUrl(["vale", "adicionar", id]), {vale: body});
   }
 
   async adicionarMultiplosVales(id: string, body: Vale[]) {
     return await api.put(
       this.buildUrl(["vale", "adicionar-multiplos", id]),
-      body,
+      {vales: body},
     );
   }
 }

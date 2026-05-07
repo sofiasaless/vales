@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { gerenteFirestore } from "../firestore/gerente.firestore";
-import { Gerente, GerenteUpdateDTO } from "../schema/gerente.schema";
+import { Gerente, GerentePostRequestBody, GerenteUpdateDTO } from "../schema/gerente.schema";
 import { GerenteService } from "../services/gerente.service";
 
 export function useGerenteConectado() {
@@ -85,8 +85,24 @@ export function useAcoesGerente() {
     },
   });
 
+  const criar = useMutation({
+    mutationFn: ({ props }: {props: GerentePostRequestBody}) => gerenteService.criarGerente(props),
+
+    onSuccess: () => {
+      console.info("usuário criado com sucesso")
+      queryClient.invalidateQueries({
+        queryKey: ["gerentes"],
+      });
+    },
+
+    onError: (error) => {
+      console.error("Erro ao atualizar gerente ", error);
+    },
+  });
+
   return {
     atualizarFotoGerente,
     atualizar,
+    criar,
   };
 }

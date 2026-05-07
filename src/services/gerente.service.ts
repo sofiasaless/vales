@@ -2,6 +2,7 @@ import { api } from "../config/client";
 import {
   AutenticarGerenteDTO,
   AutenticateResponseBody,
+  GerentePostRequestBody,
   GerenteUpdateDTO,
 } from "../schema/gerente.schema";
 import { ServicoPadrao } from "./padrao.service";
@@ -20,6 +21,11 @@ export class GerenteService extends ServicoPadrao {
   }
 
   async atualizar(payload: GerenteUpdateDTO) {
-    await api.put(this.buildUrl(["atualizar", payload.id]), payload);
+    const { id, ...body } = payload;
+    await api.put(this.buildUrl(["atualizar", id]), body);
+  }
+
+  async criarGerente(payload: GerentePostRequestBody) {
+    await api.post(this.buildUrl(["criar"]), payload);
   }
 }

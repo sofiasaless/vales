@@ -8,7 +8,7 @@ import {
   Radio,
   RadioGroup,
   Spinner,
-  Text
+  Text,
 } from "@ui-kitten/components";
 import React, { useState } from "react";
 import { Alert, FlatList, StyleSheet, View } from "react-native";
@@ -25,7 +25,7 @@ import {
   Gerente,
   GerentePostRequestBody,
   GerenteUpdateDTO,
-  TiposGerente
+  TiposGerente,
 } from "../schema/gerente.schema";
 import { converterTimestamp } from "../util/formatadores.util";
 
@@ -56,7 +56,7 @@ export default function GerenciarGerentes() {
 
   const [form, setForm] = useState<GerentePostRequestBody>(bodyVazio);
 
-  const { atualizar } = useAcoesGerente();
+  const { atualizar, criar } = useAcoesGerente();
 
   const tipoSelecionado: TiposGerente =
     selectedIndex === 0 ? "GERENTE" : "AUXILIAR";
@@ -133,21 +133,23 @@ export default function GerenciarGerentes() {
     form.tipo = tipoSelecionado;
 
     if (editing) {
-      const toSend: GerenteUpdateDTO = {
+      let toSend: GerenteUpdateDTO = {
         id: editing.id,
         nome: form.nome,
-        tipo: form.tipo
-      }
-      if (form.senha != '') {
-        toSend.senha = form.senha
+        tipo: form.tipo,
+      };
+      if (form.senha != "") {
+        toSend.senha = form.senha;
+      } else {
+        const { senha, ...values } = toSend;
+        toSend = values;
       }
       await atualizar.mutateAsync({
         props: toSend,
       });
     } else {
-      criarGerenteMutation.mutate({
-        idRestaurante: idRest,
-        body: form,
+      criar.mutate({
+        props: form,
       });
     }
 
