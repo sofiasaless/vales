@@ -2,137 +2,46 @@ import Entypo from "@expo/vector-icons/Entypo";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Button, Card, Input, Layout, Text } from "@ui-kitten/components";
-import React, { useEffect, useState } from "react";
-import { Alert, ScrollView, StyleSheet, View } from "react-native";
+import React from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
 
 import AntDesign from "@expo/vector-icons/AntDesign";
-import {
-  NavigationProp,
-  useNavigation,
-  useRoute,
-} from "@react-navigation/native";
 import { FlatList } from "react-native-gesture-handler";
-import { AppModal } from "../components/AppModal";
-import { AvatarIniciais } from "../components/AvatarIniciais";
-import { Carregando } from "../components/Carregando";
-import { ItemVale } from "../components/ItemVale";
-import { useEventoAlteracoesContext } from "../context/EventoAlteracaoContext";
-import { useFuncionarios } from "../hooks/useFuncionarios";
-import { useGerenteConectado } from "../hooks/useGerente";
-import { useListarVales, useVales } from "../hooks/useVales";
-import { RootStackParamList } from "../routes/StackRoutes";
-import { Gerente } from "../schema/gerente.schema";
-import { Vale, ValeDinheiroPostRequestBody } from "../schema/vale.shema";
-import { customTheme } from "../theme/custom.theme";
-import { alert } from "../util/alertfeedback.util";
-import { calcularTotalVales } from "../util/calculos.util";
-import { parseMoedaBR } from "../util/formatadores.util";
-
-type RouteParams = {
-  idFunc: string;
-};
-
-const emptyVale: ValeDinheiroPostRequestBody = {
-  descricao: "",
-  preco_unit: 0,
-};
+import { AppModal } from "../../../components/AppModal";
+import { AvatarIniciais } from "../../../components/AvatarIniciais";
+import { Carregando } from "../../../components/Carregando";
+import { ItemVale } from "../../../components/ItemVale";
+import { Gerente } from "../../../schema/gerente.schema";
+import { customTheme } from "../../../theme/custom.theme";
+import { calcularTotalVales } from "../../../util/calculos.util";
+import { parseMoedaBR } from "../../../util/formatadores.util";
+import { useManagerVoucherController } from "./useManagerVoucher.controller";
+import { AddIncentiveBonusModal } from "./controller/AddIncentiveBonusModal";
 
 export const GerenciaVales = () => {
-  const { data: gerente } = useGerenteConectado();
-  const styles = style(gerente);
-
-  const route = useRoute();
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const { idFunc } = route.params as RouteParams;
-
-  const [formVale, setFormVale] =
-    useState<ValeDinheiroPostRequestBody>(emptyVale);
-
-  const [cashError, setCashError] = useState("");
-
-  const { encontrarPorId, isLoadingF, funcionarioFoco } = useFuncionarios();
-
-  const [modalVisible, setModalVisible] = useState(false);
-
   const {
-    adicionarVale,
-    isLoading: carregando,
-    removerVale,
+    funcionarioFoco,
+    isLoadingF,
+    setModalVisible,
+    gerente,
+    navigation,
+    idFunc,
+    vales,
     isLoadingVales,
-  } = useVales();
+    handleRemoveItem,
+    modalVisible,
+    setPrecoTexto,
+    setFormVale,
+    cashError,
+    formVale,
+    handleAddCashVoucher,
+    precoTexto,
+    handleCloseModalAddBonus,
+    handleOpenModalAddBonus,
+    modalAddBonusVisible,
+  } = useManagerVoucherController();
 
-  const { data: vales, refetch } = useListarVales(idFunc);
-
-  const [precoTexto, setPrecoTexto] = useState("");
-
-  const handleRemoveItem = async (valeToRemove: Vale) => {
-    Alert.alert(
-      `Confirmar remoção`,
-      `Tem certeza que quer remover "${valeToRemove.descricao}"?`,
-      [
-        {
-          text: "Cancelar",
-        },
-        {
-          text: "Confirmar",
-          onPress: async () => {
-            await removerVale(idFunc, valeToRemove);
-            refetch();
-          },
-        },
-      ],
-    );
-  };
-
-  const handleAddCashVoucher = async () => {
-    if (formVale.preco_unit <= 0) {
-      setCashError("Informe um valor válido");
-      return;
-    }
-
-    if (formVale.descricao === "") {
-      setCashError("Informe uma descrição válida");
-      return;
-    }
-
-    await adicionarVale.mutateAsync({
-      props: {
-        id: idFunc,
-        vale: {
-          id: Math.random().toString(),
-          data_adicao: new Date(),
-          quantidade: 1,
-          criadoPor: gerente || undefined,
-          ...formVale,
-        },
-      },
-    });
-
-    setModalVisible(false);
-    setFormVale(emptyVale);
-    setCashError("");
-    setPrecoTexto("");
-  };
-
-  const { novaAdicaoVale } = useEventoAlteracoesContext();
-
-  useEffect(() => {
-    encontrarPorId(idFunc);
-    refetch();
-  }, [idFunc, novaAdicaoVale]);
-
-  useEffect(() => {
-    if (adicionarVale.isPending) return;
-    if (adicionarVale.isSuccess) {
-      refetch();
-    }
-    if (adicionarVale.isError) {
-      alert(
-        "Ocorreu um erro ao adicionar o vale",
-        adicionarVale.error?.message,
-      );
-    }
-  }, [adicionarVale.isPending]);
+  const styles = style(gerente);
 
   return isLoadingF ? (
     <Carregando />
@@ -157,13 +66,24 @@ export const GerenciaVales = () => {
           </View>
         </Layout>
 
-        <Button
-          onPress={() => setModalVisible(true)}
-          size="small"
-          appearance="outline"
-        >
-          Adicionar vale em dinheiro
-        </Button>
+        <View style={{ gap: 10 }}>
+          <Button
+            onPress={handleOpenModalAddBonus}
+            size="small"
+            appearance="outline"
+            status="warning"
+          >
+            Adicionar extra/bônus
+          </Button>
+
+          <Button
+            onPress={() => setModalVisible(true)}
+            size="small"
+            appearance="outline"
+          >
+            Adicionar vale em dinheiro
+          </Button>
+        </View>
 
         <View style={styles.sectionHeader}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
@@ -329,6 +249,12 @@ export const GerenciaVales = () => {
           </Button>
         </View>
       </AppModal>
+
+      <AddIncentiveBonusModal
+        employeeId={idFunc}
+        modalVisible={modalAddBonusVisible}
+        onClose={handleCloseModalAddBonus}
+      />
     </Layout>
   );
 };

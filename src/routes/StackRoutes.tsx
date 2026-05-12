@@ -19,7 +19,7 @@ import Financas from "../screens/Financas";
 import FinancasDetalhe from "../screens/FinancasDetalhe";
 import { GerenciaCardapio } from "../screens/GerenciaCardapio";
 import GerenciarGerentes from "../screens/GerenciarGerentes";
-import { GerenciaVales } from "../screens/GerenciaVales";
+import { GerenciaVales } from "../screens/Employee/ManagerVoucher/ManagerVoucher";
 import { HistoricoPagamentos } from "../screens/HIstoricoPagamentos";
 import { Incentivos } from "../screens/Incentivos";
 import { LoginGerente } from "../screens/LoginGerente";
