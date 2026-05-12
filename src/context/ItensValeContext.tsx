@@ -117,7 +117,7 @@ export const ItenValesProvider = ({ children }: { children: ReactNode }) => {
   /* -------- AÇÕES -------- */
 
   const adicionarItem = useCallback((item: Vale) => {
-    setItensVales(prev => {
+    setItensVales((prev) => {
       const novo = new Map(prev);
       novo.set(item.produto_ref!, item);
       return novo;
@@ -125,7 +125,7 @@ export const ItenValesProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const removerItem = useCallback((id: string) => {
-    setItensVales(prev => {
+    setItensVales((prev) => {
       const novo = new Map(prev);
       novo.delete(id);
       return novo;
@@ -133,7 +133,7 @@ export const ItenValesProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const atualizarQuantidade = useCallback((id: string, qtd: number) => {
-    setItensVales(prev => {
+    setItensVales((prev) => {
       const novo = new Map(prev);
       const item = novo.get(id);
 
@@ -160,18 +160,24 @@ export const ItenValesProvider = ({ children }: { children: ReactNode }) => {
 
   /* -------- ESTADO DERIVADO -------- */
 
-  const stateValue = useMemo<ItensValesState>(() => ({
-    itensVales,
-    tamanho: itensVales.size,
-    isVazio: itensVales.size === 0,
-  }), [itensVales]);
+  const stateValue = useMemo<ItensValesState>(
+    () => ({
+      itensVales,
+      tamanho: itensVales.size,
+      isVazio: itensVales.size === 0,
+    }),
+    [itensVales],
+  );
 
-  const actionsValue = useMemo<ItensValesActions>(() => ({
-    adicionarItem,
-    removerItem,
-    atualizarQuantidade,
-    limparItens,
-  }), [adicionarItem, removerItem, atualizarQuantidade, limparItens]);
+  const actionsValue = useMemo<ItensValesActions>(
+    () => ({
+      adicionarItem,
+      removerItem,
+      atualizarQuantidade,
+      limparItens,
+    }),
+    [adicionarItem, removerItem, atualizarQuantidade, limparItens],
+  );
 
   return (
     <ItensValesActionsContext.Provider value={actionsValue}>
@@ -181,10 +187,6 @@ export const ItenValesProvider = ({ children }: { children: ReactNode }) => {
     </ItensValesActionsContext.Provider>
   );
 };
-
-/* =======================
-   HOOKS
-======================= */
 
 export const useItensValesState = () => {
   const ctx = useContext(ItensValesStateContext);

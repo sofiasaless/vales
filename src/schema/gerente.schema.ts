@@ -33,7 +33,7 @@ export type GerenteFirestorePostRequestBody = Omit<
 
 export interface AutenticarGerenteDTO {
   id: string;
-  senha: string;
+  password: string;
 }
 
 export interface GerenteUpdateDTO {

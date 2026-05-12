@@ -25,7 +25,7 @@ export function useLoginGerente() {
     },
 
     onError: (error) => {
-      console.error("Erro ao autenticar gerente conectado ", error);
+      console.error("Erro ao autenticar gerente conectado ", error.message);
     },
   });
 

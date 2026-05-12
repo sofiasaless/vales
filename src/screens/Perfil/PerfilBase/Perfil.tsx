@@ -1,0 +1,316 @@
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
+import { Button, Layout, Text } from "@ui-kitten/components";
+import * as ImagePicker from "expo-image-picker";
+import React, { ReactNode } from "react";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { AvatarIniciais } from "../../../components/AvatarIniciais";
+import { CardGradient } from "../../../components/CardGradient";
+import { Header } from "../../../components/Header";
+import {
+  useAcoesGerente,
+  useGerenteConectado,
+} from "../../../hooks/useGerente";
+import { useRestauranteConectado } from "../../../hooks/useRestaurante";
+import { useSair } from "../../../hooks/useSair";
+import { RootStackParamList } from "../../../routes/StackRoutes";
+import { Gerente } from "../../../schema/gerente.schema";
+import { uploadImage } from "../../../services/cloudnary.serivce";
+import { customTheme } from "../../../theme/custom.theme";
+import { alert } from "../../../util/alertfeedback.util";
+import { usePerfilController } from "./usePerfil.controller";
+
+export const Perfil = () => {
+  const { data: gerente_conectado, refetch, isLoading } = useGerenteConectado();
+  const styles = style(gerente_conectado);
+
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
+  const iconColor = "#8f9bb3";
+
+  const { menuOptionsItems } = usePerfilController();
+
+  const MenuItem = ({
+    icon,
+    label,
+    onPress,
+    danger = false,
+  }: {
+    icon: ReactNode;
+    label: string;
+    onPress?: () => void;
+    danger?: boolean;
+  }) => (
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
+      style={[styles.menuItem, danger && styles.menuItemDanger]}
+    >
+      <View
+        style={[
+          styles.menuIcon,
+          danger ? styles.iconDangerBg : styles.iconDefaultBg,
+        ]}
+      >
+        {icon}
+      </View>
+
+      <Text style={styles.menuLabel} status={danger ? "danger" : "basic"}>
+        {label}
+      </Text>
+
+      <MaterialIcons name="chevron-right" size={20} color={iconColor} />
+    </TouchableOpacity>
+  );
+
+  const { data: rest_conectado } = useRestauranteConectado();
+
+  const { isLoading: carregandoLogout, sairDasContas } = useSair();
+
+  const { atualizarFotoGerente } = useAcoesGerente();
+
+  const pickImage = async () => {
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      alert(
+        "Permission required",
+        "Permission to access the media library is required.",
+      );
+      return;
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    let img_url_upload;
+    if (result.assets) img_url_upload = await uploadImage(result.assets[0].uri);
+
+    if (result.canceled) return;
+    if (gerente_conectado && rest_conectado?.id) {
+      console.info("mudando foto");
+      atualizarFotoGerente.mutate({
+        props: {
+          id_rest: rest_conectado?.id,
+          gerente_atual: gerente_conectado,
+          img: img_url_upload,
+        },
+      });
+    }
+  };
+
+  return (
+    <Layout style={styles.container}>
+      <Header title="Perfil e configurações" />
+
+      <ScrollView contentContainerStyle={styles.content}>
+        <CardGradient styles={styles.card}>
+          <View style={styles.profileRow}>
+            <TouchableOpacity onPress={pickImage}>
+              <AvatarIniciais
+                img_url={gerente_conectado?.img_perfil}
+                name={gerente_conectado?.nome || ""}
+                size="lg"
+              />
+            </TouchableOpacity>
+
+            <View style={styles.profileInfo}>
+              <Text category="h6">{gerente_conectado?.nome}</Text>
+              <Text category="s2" appearance="hint">
+                {rest_conectado?.email}
+              </Text>
+
+              <View style={styles.roleRow}>
+                <MaterialCommunityIcons
+                  name="account-tie"
+                  size={16}
+                  color="#2EB8A2"
+                />
+                <Text style={styles.roleText}>{gerente_conectado?.tipo}</Text>
+              </View>
+            </View>
+          </View>
+        </CardGradient>
+
+        {/* Restaurant Info */}
+        <CardGradient styles={styles.card}>
+          <View style={styles.restaurantRow}>
+            {rest_conectado?.foto_url ? (
+              <AvatarIniciais
+                size="sm"
+                name=""
+                img_url={rest_conectado.foto_url}
+              />
+            ) : (
+              <View style={styles.restaurantIcon}>
+                <MaterialIcons name="dining" size={24} color="#2EB8A2" />
+              </View>
+            )}
+
+            <View>
+              <Text appearance="hint" category="c1">
+                Restaurante
+              </Text>
+              <Text category="s1">{rest_conectado?.nome_fantasia}</Text>
+            </View>
+          </View>
+        </CardGradient>
+
+        <CardGradient styles={[styles.menuCard, styles.controleUsuario]}>
+          {menuOptionsItems.map((m, index) => (
+            <View key={index}>
+              <MenuItem icon={m.icon} label={m.title} onPress={m.onPress} />
+              <View style={styles.divider} />
+            </View>
+          ))}
+        </CardGradient>
+
+        <CardGradient styles={styles.menuCard}>
+          <MenuItem
+            icon={
+              <MaterialIcons
+                name="logout"
+                size={24}
+                color={customTheme["color-danger-600"]}
+              />
+            }
+            label="Sair"
+            danger
+            onPress={async () => {
+              if ((await sairDasContas()).ok) {
+                navigation.navigate("LoginRestaurante");
+              }
+            }}
+          />
+        </CardGradient>
+
+        {/* <Button onPress={() => navigation.navigate('Config')}>confis</Button>  */}
+
+        <View style={styles.footer}>
+          <Text appearance="hint" category="c1">
+            Vale App v1.0.0
+          </Text>
+        </View>
+      </ScrollView>
+    </Layout>
+  );
+};
+
+export const style = (gerente: Gerente | null | undefined) => {
+  return StyleSheet.create({
+    controleUsuario: {
+      display: gerente
+        ? gerente.tipo === "AUXILIAR"
+          ? "none"
+          : "flex"
+        : "flex",
+    },
+
+    container: {
+      flex: 1,
+      paddingBottom: 24,
+    },
+
+    content: {
+      padding: 16,
+      gap: 12,
+    },
+
+    card: {
+      padding: 16,
+      marginHorizontal: 10,
+      borderRadius: 16,
+    },
+
+    profileRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 16,
+    },
+
+    profileInfo: {
+      flex: 1,
+    },
+
+    roleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      marginTop: 4,
+    },
+
+    roleText: {
+      color: "#2EB8A2",
+      fontSize: 13,
+      fontWeight: "500",
+    },
+
+    restaurantRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+
+    restaurantIcon: {
+      padding: 12,
+      borderRadius: 16,
+      backgroundColor: "rgba(46,184,162,0.2)",
+    },
+
+    menuCard: {
+      padding: 0,
+      overflow: "hidden",
+      marginHorizontal: 10,
+      borderRadius: 16,
+    },
+
+    menuItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 16,
+    },
+
+    menuItemDanger: {},
+
+    menuIcon: {
+      padding: 8,
+      borderRadius: 10,
+      marginRight: 12,
+    },
+
+    iconDefaultBg: {
+      backgroundColor: "rgba(143,155,179,0.15)",
+    },
+
+    iconDangerBg: {
+      backgroundColor: "rgba(255,61,113,0.15)",
+    },
+
+    menuLabel: {
+      flex: 1,
+      fontWeight: "500",
+    },
+
+    divider: {
+      height: 1,
+      backgroundColor: "rgba(143,155,179,0.2)",
+      marginLeft: 56,
+    },
+
+    footer: {
+      alignItems: "center",
+      paddingTop: 24,
+      gap: 4,
+    },
+
+    footerText: {
+      marginTop: 4,
+    },
+  });
+};
