@@ -1,17 +1,25 @@
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { DateFilterProps } from "../firestore/despesa.firestore";
-import { Despesa } from "../schema/financa.schema";
+import { CategoriaFinancas, Despesa } from "../schema/financa.schema";
 import { Funcionario } from "../schema/funcionario.schema";
-import { Pagamento, PagamentoPostRequestBody } from "../schema/pagamento.schema";
+import {
+  Pagamento,
+  PagamentoPostRequestBody,
+} from "../schema/pagamento.schema";
 import { Restaurante } from "../schema/restaurante.schema";
 import { calcularTotalIncentivos, calcularTotalVales } from "./calculos.util";
-import { converterTimestamp, formatDateRelatorio, formatMoney } from "./formatadores.util";
+import {
+  converterTimestamp,
+  formatDateRelatorio,
+  formatMoney,
+} from "./formatadores.util";
+import { CategoriaFinancaFirestore } from "../firestore/categoriaFinanca.firestore";
 
 export async function gerarRelatorioVales(
   funcionario: Funcionario,
   pagamento: Pagamento | PagamentoPostRequestBody,
-  data_pag: Date
+  data_pag: Date,
 ) {
   const vales = pagamento.vales || [];
   const incentivos = pagamento.incentivo || [];
@@ -25,7 +33,7 @@ export async function gerarRelatorioVales(
   const totalIncentivos = calcularTotalIncentivos(pagamento.incentivo);
 
   const salarioBase = () => {
-    return funcionario.tipo === 'FIXO'
+    return funcionario.tipo === "FIXO"
       ? funcionario.salario / 2
       : funcionario.salario * (funcionario.dias_trabalhados_semanal || 1);
   };
@@ -143,15 +151,14 @@ export async function gerarRelatorioVales(
         </p>
       </div>
 
-      ${pagamento.assinatura
-        ?
-        `<div class="section-assinatura">
+      ${
+        pagamento.assinatura
+          ? `<div class="section-assinatura">
           <h5>Assinatura do Funcionário</h5>
           <img src="${pagamento.assinatura}" style="width: 120px; transform: rotate(90deg);" />
         </div>
         `
-        :
-        `<div class="signature">
+          : `<div class="signature">
           <div>
             <div class="signature-line"></div>
             Funcionário
@@ -167,14 +174,14 @@ export async function gerarRelatorioVales(
       <div class="page-break"></div>
 
       <h2>Relatório de Pagamento</h2>
-      <p>Período: ${(dataInicio).toLocaleDateString()} até ${(data_pag).toLocaleDateString()}</p>
+      <p>Período: ${dataInicio.toLocaleDateString()} até ${data_pag.toLocaleDateString()}</p>
 
       <div class="section">
         <h2>Funcionário</h2>
         <div class="info-grid">
           <div><strong>Nome:</strong> ${funcionario.nome}</div>
           <div><strong>Cargo:</strong> ${funcionario.cargo}</div>
-          <div><strong>CPF:</strong> ${funcionario.cpf ?? '-'}</div>
+          <div><strong>CPF:</strong> ${funcionario.cpf ?? "-"}</div>
           <div><strong>Tipo:</strong> ${funcionario.tipo}</div>
           <div><strong>Salário Bruto:</strong> ${formatMoney(funcionario.salario)}</div>
           <div><strong>Data de Admissão:</strong> ${formatDateRelatorio(converterTimestamp(funcionario.data_admissao))}</div>
@@ -205,9 +212,12 @@ export async function gerarRelatorioVales(
             </tr>
           </thead>
           <tbody>
-            ${vales.length === 0
-      ? `<tr><td colspan="5">Nenhum vale registrado</td></tr>`
-      : vales.map(v => `
+            ${
+              vales.length === 0
+                ? `<tr><td colspan="5">Nenhum vale registrado</td></tr>`
+                : vales
+                    .map(
+                      (v) => `
         <tr>
           <td>${formatDateRelatorio(converterTimestamp(v.data_adicao))}</td>
           <td>${v.descricao}</td>
@@ -215,8 +225,10 @@ export async function gerarRelatorioVales(
           <td>${formatMoney(v.preco_unit)}</td>
           <td>${formatMoney(v.preco_unit * v.quantidade)}</td>
         </tr>
-      `).join('')
-    }
+      `,
+                    )
+                    .join("")
+            }
             <tr>
               <td colspan="4" class="total">Total</td>
               <td class="total">${formatMoney(totalVales)}</td>
@@ -225,8 +237,9 @@ export async function gerarRelatorioVales(
         </table>
       </div>
 
-      ${incentivos.length > 0
-      ? `
+      ${
+        incentivos.length > 0
+          ? `
         <div class="section">
           <h2>Incentivos Recebidos</h2>
           <table>
@@ -236,11 +249,15 @@ export async function gerarRelatorioVales(
               </tr>
             </thead>
             <tbody>
-              ${incentivos.map(i => `
+              ${incentivos
+                .map(
+                  (i) => `
                 <tr>
                   <td>${formatMoney(i.valor)}</td>
                 </tr>
-              `).join('')}
+              `,
+                )
+                .join("")}
               <tr>
                 <td class="total">Total    ${formatMoney(totalIncentivos)}</td>
               </tr>
@@ -248,8 +265,8 @@ export async function gerarRelatorioVales(
           </table>
         </div>
         `
-      : ''
-    }
+          : ""
+      }
     </body>
   </html>
   `;
@@ -266,7 +283,7 @@ export async function gerarRelatorioDespesas(
 ) {
   const totalDespesas = despesas.reduce(
     (acc, despesa) => acc + despesa.valor,
-    0
+    0,
   );
 
   const html = `
@@ -345,7 +362,7 @@ export async function gerarRelatorioDespesas(
     <body>
       <h1>Relatório de Gastos</h1>
       <div class="subtitle">
-        ${(nomeCategoria) ? `Categoria: <strong>${nomeCategoria}</strong><br/>` : ''}
+        ${nomeCategoria ? `Categoria: <strong>${nomeCategoria}</strong><br/>` : ""}
         Período: ${formatDateRelatorio(datas.dataInicio)} até ${formatDateRelatorio(datas.dataFim)}
       </div>
 
@@ -362,7 +379,7 @@ export async function gerarRelatorioDespesas(
         <div class="info-grid">
           <div><strong>Nome Fantasia:</strong> ${estabelecimento.nome_fantasia}</div>
           <div><strong>Email:</strong> ${estabelecimento.email}</div>
-          <div><strong>Status:</strong> ${estabelecimento.ativo ? 'Ativo' : 'Inativo'}</div>
+          <div><strong>Status:</strong> ${estabelecimento.ativo ? "Ativo" : "Inativo"}</div>
           <div><strong>Data de Criação:</strong> ${formatDateRelatorio(converterTimestamp(estabelecimento.data_criacao))}</div>
         </div>
       </div>
@@ -375,28 +392,29 @@ export async function gerarRelatorioDespesas(
             <tr>
               <th>Data</th>
               <th>Descrição</th>
-              ${(!nomeCategoria) ? '' : '<th>Categoria</th>'}
+              ${!nomeCategoria ? "" : "<th>Categoria</th>"}
               <th class="right">Valor</th>
             </tr>
           </thead>
           <tbody>
-            ${despesas.length === 0
-      ? `<tr><td colspan=${(!nomeCategoria) ? '3' : "4"}>Nenhuma despesa registrada no período</td></tr>`
-      : despesas
-        .map(
-          d => `
+            ${
+              despesas.length === 0
+                ? `<tr><td colspan=${!nomeCategoria ? "3" : "4"}>Nenhuma despesa registrada no período</td></tr>`
+                : despesas
+                    .map(
+                      (d) => `
                       <tr>
                         <td>${formatDateRelatorio(converterTimestamp(d.data_criacao))}</td>
                         <td>${d.descricao}</td>
-                        ${(!nomeCategoria) ? '' : `<td>${nomeCategoria}</td>`}
+                        ${!nomeCategoria ? "" : `<td>${nomeCategoria}</td>`}
                         <td class="right">${formatMoney(d.valor)}</td>
                       </tr>
-                    `
-        )
-        .join('')
-    }
+                    `,
+                    )
+                    .join("")
+            }
             <tr class="total-row">
-              <td colspan=${(nomeCategoria) ? "3" : "2"}>Total</td>
+              <td colspan=${nomeCategoria ? "3" : "2"}>Total</td>
               <td class="right">${formatMoney(totalDespesas)}</td>
             </tr>
           </tbody>
@@ -404,7 +422,203 @@ export async function gerarRelatorioDespesas(
       </div>
 
       <div class="footer">
-        Relatório gerado em ${new Date().toLocaleDateString('pt-BR')}
+        Relatório gerado em ${new Date().toLocaleDateString("pt-BR")}
+      </div>
+    </body>
+  </html>
+  `;
+
+  const { uri } = await Print.printToFileAsync({
+    html,
+    base64: false,
+  });
+
+  await Sharing.shareAsync(uri);
+}
+
+export async function gerarRelatorioDespesasGeral(
+  despesas: Despesa[],
+  estabelecimento: Restaurante,
+  datas: DateFilterProps,
+  nomeCategoria?: string,
+) {
+  const totalDespesas = despesas.reduce((acc, despesa) => acc + despesa.valor, 0);
+
+  const mappedDespesas = new Map<string, Despesa[]>();
+  despesas.forEach((d) => {
+    const list = mappedDespesas.get(d.categoria_ref) || [];
+    list.push(d);
+    mappedDespesas.set(d.categoria_ref, list);
+  });
+
+  const financasFirestore = new CategoriaFinancaFirestore();
+
+  const categoriasProcessadas: { nome: string; despesas: Despesa[] }[] = [];
+
+  await Promise.all(
+    Array.from(mappedDespesas.keys()).map(async (key) => {
+      const categoria = await financasFirestore.encontrarPorId(key);
+      categoriasProcessadas.push({
+        nome: categoria?.descricao || "Sem Categoria",
+        despesas: mappedDespesas.get(key) || [],
+      });
+    })
+  );
+
+  categoriasProcessadas.sort((a, b) => a.nome.localeCompare(b.nome));
+
+  const html = `
+  <html>
+    <head>
+      <style>
+        body {
+          font-family: Arial, Helvetica, sans-serif;
+          padding: 32px;
+          color: #111;
+        }
+
+        h1 {
+          text-align: center;
+          margin-bottom: 4px;
+        }
+
+        .subtitle {
+          text-align: center;
+          font-size: 14px;
+          margin-bottom: 24px;
+        }
+
+        .section {
+          margin-bottom: 24px;
+        }
+
+        .section h2 {
+          font-size: 16px;
+          border-bottom: 1px solid #ccc;
+          padding-bottom: 4px;
+          margin-bottom: 12px;
+        }
+
+        .info-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px 24px;
+          font-size: 14px;
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 8px;
+          font-size: 14px;
+        }
+
+        th, td {
+          border: 1px solid #ccc;
+          padding: 8px;
+        }
+
+        th {
+          background-color: #f5f5f5;
+          text-align: left;
+        }
+
+        .right {
+          text-align: right;
+        }
+
+        .total-row td {
+          font-weight: bold;
+        }
+
+        .footer {
+          margin-top: 48px;
+          text-align: center;
+          font-size: 12px;
+          color: #666;
+        }
+
+        .category-header {
+          background-color: #e9ecef;
+          font-weight: bold;
+          padding: 8px;
+          border: 1px solid #ccc;
+        }
+      </style>
+    </head>
+
+    <body>
+      <h1>Relatório de Gastos</h1>
+      <div class="subtitle">
+        ${nomeCategoria ? `Categoria: <strong>${nomeCategoria}</strong><br/>` : ""}
+        Período: ${formatDateRelatorio(datas.dataInicio)} até ${formatDateRelatorio(datas.dataFim)}
+      </div>
+
+      <div class="section">
+        <h2>Resumo do Período</h2>
+        <div class="info-grid">
+          <div><strong>Total de Despesas:</strong> ${formatMoney(totalDespesas)}</div>
+          <div><strong>Quantidade de Lançamentos:</strong> ${despesas.length}</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Estabelecimento</h2>
+        <div class="info-grid">
+          <div><strong>Nome Fantasia:</strong> ${estabelecimento.nome_fantasia}</div>
+          <div><strong>E-mail:</strong> ${estabelecimento.email}</div>
+          <div><strong>Status:</strong> ${estabelecimento.ativo ? "Ativo" : "Inativo"}</div>
+          <div><strong>Data de Criação:</strong> ${formatDateRelatorio(converterTimestamp(estabelecimento.data_criacao))}</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Lista de Despesas por Categoria</h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Descrição</th>
+              <th class="right">Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${
+              categoriasProcessadas.length === 0
+                ? `<tr><td colspan="3">Nenhuma despesa registrada no período</td></tr>`
+                : categoriasProcessadas
+                    .map(
+                      (cat) => `
+                <!-- Linha de quebra com o nome da categoria -->
+                <tr>
+                  <td colspan="3" class="category-header">${cat.nome.toUpperCase()}</td>
+                </tr>
+                ${cat.despesas
+                  .map(
+                    (d) => `
+                  <tr>
+                    <td>${formatDateRelatorio(converterTimestamp(d.data_criacao))}</td>
+                    <td>${d.descricao}</td>
+                    <td class="right">${formatMoney(d.valor)}</td>
+                  </tr>
+                `
+                  )
+                  .join("")}
+              `
+                    )
+                    .join("")
+            }
+            <tr class="total-row">
+              <td colspan="2">TOTAL GERAL</td>
+              <td class="right">${formatMoney(totalDespesas)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="footer">
+        Relatório gerado em ${new Date().toLocaleDateString("pt-BR")}
       </div>
     </body>
   </html>
