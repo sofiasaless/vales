@@ -9,7 +9,6 @@ import {
   FuncionarioPostRequestBody,
 } from "../schema/funcionario.schema";
 import { Incentivo } from "../schema/incentivo.schema";
-import { Assinatura } from "../screens/Assinatura";
 import Cardapio from "../screens/Cardapio";
 import { Config } from "../screens/Config";
 import { Contratacao } from "../screens/Contratacao";
@@ -26,11 +25,12 @@ import { LoginGerente } from "../screens/LoginGerente";
 import Mensalidades from "../screens/Mensalidades";
 import RegistroVendaIncentivo from "../screens/RegistroVendaIncentivo";
 import RelatorioFinancas from "../screens/RelatorioFinancas";
-import { ResumoPagamento } from "../screens/ResumoPagamento";
 import { customTheme } from "../theme/custom.theme";
 import { BottomTabsRoutes } from "./BottomRoutes";
 import { AssinaturaContrato } from "../screens/AssinaturaContrato";
 import Settings from "../screens/Perfil/Settings/Settings";
+import { PaymentResume } from "../screens/Employee/Payment/PaymentResume/PaymentResume";
+import { PaymentSignature } from "../screens/Employee/Payment/PaymentSignature/PaymentSignature";
 
 export type RootStackParamList = {
   Tabs: undefined;
@@ -86,13 +86,13 @@ export default function StackRoutes() {
 
       <Stack.Screen
         name="ResumoPagamento"
-        component={ResumoPagamento}
+        component={PaymentResume}
         options={optionsHeader("Resumo pagamento")}
       />
 
       <Stack.Screen
         name="Assinatura"
-        component={Assinatura}
+        component={PaymentSignature}
         options={optionsHeader("Assinatura do funcionário")}
       />
 

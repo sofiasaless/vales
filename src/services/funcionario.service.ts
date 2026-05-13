@@ -1,9 +1,9 @@
 import { api } from "../config/client";
 import { AddIncentiveBonusOnEmployee } from "../hooks/employee/types";
 import { Vale } from "../schema/vale.shema";
-import { ServicoPadrao } from "./padrao.service";
+import { BaseService } from "./base.service";
 
-export class FuncionarioService extends ServicoPadrao {
+export class FuncionarioService extends BaseService {
   protected BASE_PATH: string = "funcionario";
 
   async adicionarVale(id: string, body: Vale) {

@@ -16,7 +16,7 @@ import { customTheme } from "../../../theme/custom.theme";
 import { calcularTotalVales } from "../../../util/calculos.util";
 import { parseMoedaBR } from "../../../util/formatadores.util";
 import { useManagerVoucherController } from "./useManagerVoucher.controller";
-import { AddIncentiveBonusModal } from "./controller/AddIncentiveBonusModal";
+import { AddIncentiveBonusModal } from "./components/AddIncentiveBonusModal";
 
 export const GerenciaVales = () => {
   const {

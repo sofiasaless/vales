@@ -3,22 +3,20 @@ import {
   Button,
   Layout
 } from '@ui-kitten/components';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 
 import { NavigationProp, useNavigation, useRoute } from '@react-navigation/native';
-import { SignaturePad, SignaturePadRef } from '../components/SignaturePad';
-import { usePagamentos } from '../hooks/usePagamentos';
-import { useRestauranteId } from '../hooks/useRestaurante';
-import { useVales } from '../hooks/useVales';
-import { RootStackParamList } from '../routes/StackRoutes';
-import { Funcionario } from '../schema/funcionario.schema';
-import { uploadAssinaturaCloudinary } from '../services/cloudnary.serivce';
-import { alert } from '../util/alertfeedback.util';
-import { calcularTotalParaPagar, calcularTotalVales } from '../util/calculos.util';
-import { formatarDataVales } from '../util/datas.util';
+import { SignaturePad, SignaturePadRef } from '../../../../components/SignaturePad';
+import { usePaymentActions } from '../../../../hooks/payment/usePaymentActions';
+import { RootStackParamList } from '../../../../routes/StackRoutes';
+import { Funcionario } from '../../../../schema/funcionario.schema';
+import { uploadAssinaturaCloudinary } from '../../../../services/cloudnary.serivce';
+import { alert } from '../../../../util/alertfeedback.util';
+import { calcularTotalParaPagar } from '../../../../util/calculos.util';
+import { formatarDataVales } from '../../../../util/datas.util';
 
-export const Assinatura = () => {
+export const PaymentSignature = () => {
   const route = useRoute();
   const { funcObj } = route.params as { funcObj: Funcionario };
   const navigator = useNavigation<NavigationProp<RootStackParamList>>();
@@ -26,14 +24,12 @@ export const Assinatura = () => {
   const signatureRef = useRef<SignaturePadRef>(null);
   const [assinaturaBase64, setAssinaturaBase64] = useState<string | null>(null);
 
-  const { data: res_ } = useRestauranteId()
-  const { pagarFuncionario } = usePagamentos()
-  const { adicionarVale } = useVales()
-
   const salvarAssinatura = (base64: string) => {
     setAssinaturaBase64(base64);
     Alert.alert("Assinatura capturada!");
   };
+
+  const { payEmployee } = usePaymentActions();
 
   const [isLoading, setIsLoading] = useState(false)
   const gerarECompartilharPDF = async () => {
@@ -45,39 +41,39 @@ export const Assinatura = () => {
       }
 
       const cloudnary_url = await uploadAssinaturaCloudinary(assinaturaBase64);
-      const res = await pagarFuncionario(funcObj.id, {
-        incentivo: funcObj.incentivo,
-        vales: formatarDataVales(funcObj.vales),
-        valor_pago: calcularTotalParaPagar(funcObj),
-        restaurante_ref: res_?.uid || '',
-        salario_atual: funcObj.salario,
-        assinatura: cloudnary_url.secure_url
-      });
 
-      if (res.ok) {
-        // verificar se o pagamento foi negativo e se for adicionar como novo vale
-        if (calcularTotalParaPagar(funcObj) < 0) {
-          await adicionarVale(funcObj.id, {
-            id: Math.random().toString(),
-            descricao: 'Negativo última quinzena',
-            data_adicao: new Date(),
-            preco_unit: calcularTotalParaPagar(funcObj) * -1,
-            quantidade: 1
-          })
+      await payEmployee.mutateAsync({
+        employeeId: funcObj.id,
+        body: {
+          incentivo: funcObj.incentivo,
+          vales: formatarDataVales(funcObj.vales),
+          valor_pago: calcularTotalParaPagar(funcObj),
+          salario_atual: funcObj.salario,
+          assinatura: cloudnary_url.secure_url,
         }
-        navigator.reset({
-          index: 0,
-          routes: [{ name: 'Tabs' }],
-        });
-      } else {
-        alert('Ocorreu um erro ao confirmar pagamento do funcionário', res.message);
-      }
+      })
     } catch (error: any) {
-      alert('Ocorreu um erro ao confirmar pagamento do funcionário', error);
+      console.error('Ocorreu um erro ao confirmar pagamento do funcionário', error);
     } finally {
       setIsLoading(false)
     }
   };
+
+  useEffect(() => {
+    if (payEmployee.isPending) return;
+
+    if (payEmployee.status === 'error') {
+      alert('Ocorreu um erro ao confirmar pagamento do funcionário ', payEmployee.error.message);
+      return;
+    }
+    if (payEmployee.status === 'success') {
+      navigator.reset({
+        index: 0,
+        routes: [{ name: 'Tabs' }],
+      });
+      return;
+    }
+  }, [payEmployee.isPending, payEmployee.status])
 
   return (
     <Layout style={styles.container}>

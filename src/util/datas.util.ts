@@ -20,7 +20,8 @@ export function formatarDataVales(vales: Vale[]) {
   const formatados: Vale[] = vales.map((v) => {
     return {
       ...v,
-      data_adicao: converterTimestamp(v.data_adicao)
+      data_adicao: converterTimestamp(v.data_adicao),
+      produto_ref: (v as any).produto_ref.id || v.produto_ref 
     }
   })
 
