@@ -442,7 +442,10 @@ export async function gerarRelatorioDespesasGeral(
   datas: DateFilterProps,
   nomeCategoria?: string,
 ) {
-  const totalDespesas = despesas.reduce((acc, despesa) => acc + despesa.valor, 0);
+  const totalDespesas = despesas.reduce(
+    (acc, despesa) => acc + despesa.valor,
+    0,
+  );
 
   const mappedDespesas = new Map<string, Despesa[]>();
   despesas.forEach((d) => {
@@ -462,7 +465,7 @@ export async function gerarRelatorioDespesasGeral(
         nome: categoria?.descricao || "Sem Categoria",
         despesas: mappedDespesas.get(key) || [],
       });
-    })
+    }),
   );
 
   categoriasProcessadas.sort((a, b) => a.nome.localeCompare(b.nome));
@@ -527,8 +530,26 @@ export async function gerarRelatorioDespesasGeral(
           text-align: right;
         }
 
+        .category-header {
+          background-color: #e9ecef;
+          font-weight: bold;
+          padding: 8px;
+          border: 1px solid #ccc;
+        }
+
+        /* Estilo para a linha de subtotal da categoria */
+        .category-total td {
+          font-weight: bold;
+          font-style: italic;
+          background-color: #fafafa;
+          color: #444;
+          font-size: 13px;
+        }
+
         .total-row td {
           font-weight: bold;
+          background-color: #dfdfdf;
+          font-size: 15px;
         }
 
         .footer {
@@ -536,13 +557,6 @@ export async function gerarRelatorioDespesasGeral(
           text-align: center;
           font-size: 12px;
           color: #666;
-        }
-
-        .category-header {
-          background-color: #e9ecef;
-          font-weight: bold;
-          padding: 8px;
-          border: 1px solid #ccc;
         }
       </style>
     </head>
@@ -588,25 +602,36 @@ export async function gerarRelatorioDespesasGeral(
               categoriasProcessadas.length === 0
                 ? `<tr><td colspan="3">Nenhuma despesa registrada no período</td></tr>`
                 : categoriasProcessadas
-                    .map(
-                      (cat) => `
-                <!-- Linha de quebra com o nome da categoria -->
-                <tr>
-                  <td colspan="3" class="category-header">${cat.nome.toUpperCase()}</td>
-                </tr>
-                ${cat.despesas
-                  .map(
-                    (d) => `
-                  <tr>
-                    <td>${formatDateRelatorio(converterTimestamp(d.data_criacao))}</td>
-                    <td>${d.descricao}</td>
-                    <td class="right">${formatMoney(d.valor)}</td>
-                  </tr>
-                `
-                  )
-                  .join("")}
-              `
-                    )
+                    .map((cat) => {
+                      // Calcula o valor total específico desta categoria
+                      const totalCategoria = cat.despesas.reduce(
+                        (acc, d) => acc + d.valor,
+                        0,
+                      );
+
+                      return `
+                        <tr>
+                          <td colspan="3" class="category-header">${cat.nome.toUpperCase()}</td>
+                        </tr>
+
+                        ${cat.despesas
+                          .map(
+                            (d) => `
+                          <tr>
+                            <td>${formatDateRelatorio(converterTimestamp(d.data_criacao))}</td>
+                            <td>${d.descricao}</td>
+                            <td class="right">${formatMoney(d.valor)}</td>
+                          </tr>
+                        `,
+                          )
+                          .join("")}
+
+                        <tr class="category-total">
+                          <td colspan="2" class="right">Total ${cat.nome}:</td>
+                          <td class="right">${formatMoney(totalCategoria)}</td>
+                        </tr>
+                      `;
+                    })
                     .join("")
             }
             <tr class="total-row">

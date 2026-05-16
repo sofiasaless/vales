@@ -1,7 +1,7 @@
-import AntDesign from '@expo/vector-icons/AntDesign';
-import Entypo from '@expo/vector-icons/Entypo';
-import Feather from '@expo/vector-icons/Feather';
-import { useRoute } from '@react-navigation/native';
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Entypo from "@expo/vector-icons/Entypo";
+import Feather from "@expo/vector-icons/Feather";
+import { useRoute } from "@react-navigation/native";
 import {
   Button,
   ButtonGroup,
@@ -10,33 +10,43 @@ import {
   Layout,
   Modal,
   Spinner,
-  Text
-} from '@ui-kitten/components';
-import React, { useEffect, useMemo, useState } from 'react';
+  Text,
+} from "@ui-kitten/components";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
   Platform,
   StyleSheet,
   TouchableOpacity,
-  View
-} from 'react-native';
-import { CardGradient } from '../components/CardGradient';
-import { DinheiroDisplay } from '../components/DinheiroDisplay';
-import { useTotalDespesasContext } from '../context/TotalDespesasContext';
-import { despesaFirestore } from '../firestore/despesa.firestore';
-import { useAcoesDespesa, useListarDespesas } from '../hooks/useDespesaFinancas';
-import { colorMap, iconMap } from '../maps/financas.map';
-import { CategoriaFinancas, DespesaPostRequestBody } from '../schema/financa.schema';
-import { customTheme } from '../theme/custom.theme';
-import { alert } from '../util/alertfeedback.util';
-import { converterParaIsoDate, formatCurrency, parseMoedaBR } from '../util/formatadores.util';
-import { DatePicker } from '../components/DatePicker';
-import { converterParaDate } from '../util/datas.util';
-import { useRestauranteConectado } from '../hooks/useRestaurante';
-import { gerarRelatorioDespesas } from '../util/relatorios.util';
-import { AppModal } from '../components/AppModal';
-import { LixeiraItem } from '../components/LixeiraItem';
+  View,
+} from "react-native";
+import { CardGradient } from "../components/CardGradient";
+import { DinheiroDisplay } from "../components/DinheiroDisplay";
+import { useTotalDespesasContext } from "../context/TotalDespesasContext";
+import { despesaFirestore } from "../firestore/despesa.firestore";
+import {
+  useAcoesDespesa,
+  useListarDespesas,
+} from "../hooks/useDespesaFinancas";
+import { colorMap, iconMap } from "../maps/financas.map";
+import {
+  CategoriaFinancas,
+  DespesaPostRequestBody,
+} from "../schema/financa.schema";
+import { customTheme } from "../theme/custom.theme";
+import { alert } from "../util/alertfeedback.util";
+import {
+  converterParaIsoDate,
+  formatCurrency,
+  parseMoedaBR,
+} from "../util/formatadores.util";
+import { DatePicker } from "../components/DatePicker";
+import { converterParaDate } from "../util/datas.util";
+import { useRestauranteConectado } from "../hooks/useRestaurante";
+import { gerarRelatorioDespesas } from "../util/relatorios.util";
+import { AppModal } from "../components/AppModal";
+import { LixeiraItem } from "../components/LixeiraItem";
 
 export default function FinancasDetalhe() {
   const route = useRoute<any>();
@@ -44,57 +54,61 @@ export default function FinancasDetalhe() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [novaDespesa, setNovaDespesa] = useState<DespesaPostRequestBody>({
-    descricao: '',
+    descricao: "",
     valor: 0,
   });
-  const [valor, setValor] = useState<number>(0)
+  const [valor, setValor] = useState<number>(0);
 
-  const [dataInicio, setDataInicio] = useState(new Date(new Date().setDate(1)))
-  const settingInicio = (tipo: 'DATA' | 'HORA', dado?: string) => {
-    if (tipo === 'DATA' && dado != undefined) {
-      setDataInicio(converterParaDate(dado))
+  const [dataInicio, setDataInicio] = useState(new Date(new Date().setDate(1)));
+  const settingInicio = (tipo: "DATA" | "HORA", dado?: string) => {
+    if (tipo === "DATA" && dado != undefined) {
+      setDataInicio(converterParaDate(dado));
     }
-  }
-  const [dataFim, setDataFim] = useState(new Date())
-  const settingFim = (tipo: 'DATA' | 'HORA', dado?: string) => {
-    if (tipo === 'DATA' && dado != undefined) {
-      setDataFim(converterParaDate(dado))
+  };
+  const [dataFim, setDataFim] = useState(new Date());
+  const settingFim = (tipo: "DATA" | "HORA", dado?: string) => {
+    if (tipo === "DATA" && dado != undefined) {
+      setDataFim(converterParaDate(dado));
     }
-  }
+  };
 
-  const { data: restaurante } = useRestauranteConectado()
+  const { data: restaurante } = useRestauranteConectado();
 
-  const { data: despesas, isLoading, refetch } = useListarDespesas(categoriaObj.id, { dataFim, dataInicio })
+  const {
+    data: despesas,
+    isLoading,
+    refetch,
+  } = useListarDespesas(categoriaObj.id, { dataFim, dataInicio });
 
-  const { adicionarNovaDespesa } = useTotalDespesasContext()
+  const { adicionarNovaDespesa } = useTotalDespesasContext();
 
-  const { excluirDespesa, adicionarDespesa } = useAcoesDespesa()
+  const { excluirDespesa, adicionarDespesa } = useAcoesDespesa();
 
-  const [precoTexto, setPrecoTexto] = useState('');
+  const [precoTexto, setPrecoTexto] = useState("");
 
   const totalPeriodo = useMemo(() => {
     return despesas?.reduce((acumulador, atual) => {
       return acumulador + atual.valor;
-    }, 0)
-  }, [despesas])
+    }, 0);
+  }, [despesas]);
 
-  const [isAdicionando, setIsAdicionando] = useState(false)
+  const [isAdicionando, setIsAdicionando] = useState(false);
   const handleAdicionar = async () => {
     try {
-      setIsAdicionando(true)
+      setIsAdicionando(true);
       if (!novaDespesa.descricao.trim() || valor <= 0) return;
 
       novaDespesa.valor = Number(valor);
       adicionarDespesa.mutate({
         props: {
           idCategoria: categoriaObj.id,
-          body: novaDespesa
-        }
+          body: novaDespesa,
+        },
       });
     } catch (error: any) {
-      alert('Ocorreu um erro ao adicionar despesa', error)
+      alert("Ocorreu um erro ao adicionar despesa", error);
     } finally {
-      setIsAdicionando(false)
+      setIsAdicionando(false);
     }
   };
 
@@ -108,26 +122,29 @@ export default function FinancasDetalhe() {
 
   useEffect(() => {
     if (adicionarDespesa.isSuccess && !adicionarDespesa.isPending) {
-      setDataFim(new Date())
-      refetch()
-      adicionarNovaDespesa(novaDespesa)
-      setNovaDespesa({ descricao: '', valor: 0 });
-      setValor(0)
-      setPrecoTexto('')
+      setDataFim(new Date());
+      refetch();
+      adicionarNovaDespesa(novaDespesa);
+      setNovaDespesa({ descricao: "", valor: 0 });
+      setValor(0);
+      setPrecoTexto("");
       setModalOpen(false);
-      return
+      return;
     }
 
     if (excluirDespesa.isSuccess && !excluirDespesa.isPending) {
-      refetch()
-      return
+      refetch();
+      return;
     }
-
-  }, [adicionarDespesa.isPending, excluirDespesa.isPending])
+  }, [adicionarDespesa.isPending, excluirDespesa.isPending]);
 
   return (
-    <Layout style={[styles.container, (Platform.OS === 'web') ? { height: '70%' } : { flex: 1 }]}>
-
+    <Layout
+      style={[
+        styles.container,
+        Platform.OS === "web" ? { height: "70%" } : { flex: 1 },
+      ]}
+    >
       <CardGradient styles={styles.summary}>
         <View
           style={[
@@ -144,7 +161,11 @@ export default function FinancasDetalhe() {
 
         <View>
           <Text appearance="hint">Total em {categoriaObj.descricao}</Text>
-          <DinheiroDisplay variant='negative' size='lg' value={totalPeriodo || 0} />
+          <DinheiroDisplay
+            variant="negative"
+            size="lg"
+            value={totalPeriodo || 0}
+          />
         </View>
       </CardGradient>
 
@@ -157,91 +178,137 @@ export default function FinancasDetalhe() {
         Nova Despesa
       </Button>
 
-      {
-        (isLoading) ?
-          <Spinner />
-          :
-          <FlatList
-            data={despesas}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.list}
-            ListEmptyComponent={
-              <Text appearance="hint" style={styles.empty}>
-                Nenhuma despesa neste período
-              </Text>
-            }
-            renderItem={({ item }) => (
-              <CardGradient styles={styles.expenseCard}>
-                <View>
-                  <Text category="s1">{item.descricao}</Text>
-                  <Text appearance="hint" style={styles.date}>
-                    {converterParaIsoDate(item.data_criacao)}
-                  </Text>
-                </View>
-
-                <Text status="danger" style={styles.amount}>
-                  {formatCurrency(item.valor)}
+      {isLoading ? (
+        <Spinner />
+      ) : (
+        <FlatList
+          data={despesas}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          ListEmptyComponent={
+            <Text appearance="hint" style={styles.empty}>
+              Nenhuma despesa neste período
+            </Text>
+          }
+          renderItem={({ item }) => (
+            <CardGradient styles={styles.expenseCard}>
+              <View style={{ width: "40%" }}>
+                <Text category="s1">{item.descricao}</Text>
+                <Text appearance="hint" style={styles.date}>
+                  {converterParaIsoDate(item.data_criacao)}
                 </Text>
+              </View>
 
-                <LixeiraItem action={() => Alert.alert('Apagar registro', `Tem certeza que quer apagar o item "${item.descricao}"?`, [
-                  {
-                    text: 'Cancelar'
-                  },
-                  {
-                    text: 'Confirmar',
-                    onPress: async () => {
-                      excluirDespesa.mutate({
-                        props: {
-                          idDespesa: item.id
-                        }
-                      })
-                    }
-                  }
-                ])
-                } />
-              </CardGradient>
-            )}
-            removeClippedSubviews
-            windowSize={5}
-            maxToRenderPerBatch={10}
-            initialNumToRender={10}
-          />
-      }
+              <Text status="danger" style={styles.amount}>
+                {formatCurrency(item.valor)}
+              </Text>
+
+              <LixeiraItem
+                action={() =>
+                  Alert.alert(
+                    "Apagar registro",
+                    `Tem certeza que quer apagar o item "${item.descricao}"?`,
+                    [
+                      {
+                        text: "Cancelar",
+                      },
+                      {
+                        text: "Confirmar",
+                        onPress: async () => {
+                          excluirDespesa.mutate({
+                            props: {
+                              idDespesa: item.id,
+                            },
+                          });
+                        },
+                      },
+                    ],
+                  )
+                }
+              />
+            </CardGradient>
+          )}
+          removeClippedSubviews
+          windowSize={5}
+          maxToRenderPerBatch={10}
+          initialNumToRender={10}
+        />
+      )}
 
       <View style={styles.grupoBotoes}>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          <DatePicker status='warning' setarData={settingInicio} tamanBtn='small' tipo='date' dataPreEstabelecida={dataInicio} />
-          <Text style={{ textAlign: 'center', alignSelf: 'center', fontSize: 12 }} category='s1'>até</Text>
-          <DatePicker status='warning' setarData={settingFim} tamanBtn='small' tipo='date' dataPreEstabelecida={dataFim} />
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <DatePicker
+            status="warning"
+            setarData={settingInicio}
+            tamanBtn="small"
+            tipo="date"
+            dataPreEstabelecida={dataInicio}
+          />
+          <Text
+            style={{ textAlign: "center", alignSelf: "center", fontSize: 12 }}
+            category="s1"
+          >
+            até
+          </Text>
+          <DatePicker
+            status="warning"
+            setarData={settingFim}
+            tamanBtn="small"
+            tipo="date"
+            dataPreEstabelecida={dataFim}
+          />
         </View>
 
-        <View style={{ flexDirection: 'row', gap: 8 }}>
+        <View style={{ flexDirection: "row", gap: 8 }}>
           <Button
-            size='small'
-            status='warning'
-            appearance='outline'
-            accessoryRight={<AntDesign name="reload" size={16} color={customTheme['color-warning-500']} />}
+            size="small"
+            status="warning"
+            appearance="outline"
+            accessoryRight={
+              <AntDesign
+                name="reload"
+                size={16}
+                color={customTheme["color-warning-500"]}
+              />
+            }
             onPress={() => {
-              setDataFim(new Date())
-              setDataInicio(new Date(new Date().setDate(1)))
+              setDataFim(new Date());
+              setDataInicio(new Date(new Date().setDate(1)));
             }}
           >
             Resetar datas
           </Button>
 
-          <Button size='small' appearance='outline' status='info'
-            accessoryRight={<Entypo name="share" size={16} color={customTheme['color-info-500']} />}
-            onPress={async () => gerarRelatorioDespesas(despesas || [], restaurante!, { dataFim, dataInicio }, categoriaObj.descricao)}
-          >Compartilhar relatório</Button>
+          <Button
+            size="small"
+            appearance="outline"
+            status="info"
+            accessoryRight={
+              <Entypo
+                name="share"
+                size={16}
+                color={customTheme["color-info-500"]}
+              />
+            }
+            onPress={async () =>
+              gerarRelatorioDespesas(
+                despesas || [],
+                restaurante!,
+                { dataFim, dataInicio },
+                categoriaObj.descricao,
+              )
+            }
+          >
+            Compartilhar relatório
+          </Button>
         </View>
       </View>
 
       <AppModal visible={modalOpen} onClose={() => setModalOpen(false)}>
-
         <Text category="h6">Nova Despesa</Text>
         <View style={{ gap: 5, marginTop: 8 }}>
           <Input
-            status='primary'
+            status="primary"
             label="Descrição"
             placeholder="Ex: Arroz, Bebidas..."
             value={novaDespesa.descricao}
@@ -251,7 +318,7 @@ export default function FinancasDetalhe() {
           />
 
           <Input
-            status='primary'
+            status="primary"
             label="Valor"
             placeholder="0,00"
             keyboardType="decimal-pad"
@@ -261,28 +328,27 @@ export default function FinancasDetalhe() {
               const numero = parseMoedaBR(price);
 
               if (numero !== null) {
-                setValor(numero)
+                setValor(numero);
               }
             }}
           />
-
         </View>
 
         <View style={styles.modalActions}>
           <Button
             appearance="ghost"
-            status='danger'
+            status="danger"
             onPress={() => setModalOpen(false)}
           >
             Cancelar
           </Button>
 
           <Button disabled={isAdicionando} onPress={handleAdicionar}>
-            {(isAdicionando) ? 'Adicionando...' : 'Adicionar'}
+            {isAdicionando ? "Adicionando..." : "Adicionar"}
           </Button>
         </View>
       </AppModal>
-    </Layout >
+    </Layout>
   );
 }
 
@@ -292,14 +358,14 @@ const styles = StyleSheet.create({
   },
 
   summary: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
     padding: 16,
     borderRadius: 16,
     marginBottom: 16,
     borderWidth: 0.8,
-    borderColor: customTheme['text-disabled-color']
+    borderColor: customTheme["text-disabled-color"],
   },
 
   iconBox: {
@@ -322,10 +388,10 @@ const styles = StyleSheet.create({
   expenseCard: {
     padding: 14,
     borderRadius: 14,
-    backgroundColor: '#0F172A',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    backgroundColor: "#0F172A",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 
   date: {
@@ -333,28 +399,28 @@ const styles = StyleSheet.create({
   },
 
   amount: {
-    fontWeight: '600',
+    fontWeight: "600",
   },
 
   empty: {
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 40,
   },
 
   backdrop: {
-    backgroundColor: 'rgba(0,0,0,0.5)'
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
 
   modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "flex-end",
     gap: 8,
     marginTop: 16,
   },
 
   grupoBotoes: {
     paddingBlock: 15,
-    alignItems: 'center',
-    gap: 15
-  }
+    alignItems: "center",
+    gap: 15,
+  },
 });
