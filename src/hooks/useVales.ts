@@ -8,6 +8,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { converterTimestamp } from "../util/formatadores.util";
 import { FuncionarioService } from "../services/funcionario.service";
+import { Voucher } from "../model/employee.model";
 
 const funcionarioService = new FuncionarioService();
 export function useListarVales(idFuncionario: string) {
@@ -77,7 +78,7 @@ export function useVales() {
     },
   });
 
-  const removerVale = async (id: string, vale: Vale) => {
+  const removerVale = async (id: string, vale: Vale | Voucher) => {
     setIsLoading(true);
     try {
       await funcionarioFirestore.removerVale(id, vale);

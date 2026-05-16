@@ -5,5 +5,6 @@ export interface AddIncentiveBonusOnEmployee {
 }
 
 export interface RemoveIncentiveBonusOnEmployee extends AddIncentiveBonusOnEmployee {
-  id: string
+  id: string,
+  data?: string,
 }

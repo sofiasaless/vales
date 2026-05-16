@@ -6,12 +6,13 @@ import { Vale } from "../schema/vale.shema";
 import { customTheme } from "../theme/custom.theme";
 import { converterTimestamp, formatDateTime } from "../util/formatadores.util";
 import { LixeiraItem } from "./LixeiraItem";
+import { Voucher } from "../model/employee.model";
 
 interface VoucherItemCardProps {
-  item: Vale;
+  item: Vale | Voucher;
   showControls?: boolean;
   dangerStyle?: boolean;
-  onExclude?: (v: Vale) => void;
+  onExclude?: (v: Vale | Voucher) => void;
 }
 
 export const ItemVale: React.FC<VoucherItemCardProps> = ({
@@ -53,7 +54,7 @@ export const ItemVale: React.FC<VoucherItemCardProps> = ({
             style={{ color: customTheme["text-hint-color"] }}
             numberOfLines={1}
           >
-            Adc. em {formatDateTime(converterTimestamp(item.data_adicao))}
+            Adc. em {formatDateTime(item.data_adicao)}
           </Text>
 
           {item.criadoPor && (

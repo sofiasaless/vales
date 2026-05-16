@@ -2,88 +2,42 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Button, Card, Divider, Layout, Text } from "@ui-kitten/components";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { FlatList, ScrollView, StyleSheet, View } from "react-native";
 
-import {
-  NavigationProp,
-  useNavigation,
-  useRoute,
-} from "@react-navigation/native";
 import { AppModal } from "../../../../components/AppModal";
 import { CardGradient } from "../../../../components/CardGradient";
 import { DinheiroDisplay } from "../../../../components/DinheiroDisplay";
+import { ItemBonus } from "../../../../components/ItemBonus";
 import { ItemVale } from "../../../../components/ItemVale";
-import { usePaymentActions } from "../../../../hooks/payment/usePaymentActions";
-import { RootStackParamList } from "../../../../routes/StackRoutes";
-import { Funcionario } from "../../../../schema/funcionario.schema";
 import { customTheme } from "../../../../theme/custom.theme";
-import { alert } from "../../../../util/alertfeedback.util";
 import {
   calcularSalarioQuinzena,
   calcularTotalParaPagar,
   calcularTotalVales,
 } from "../../../../util/calculos.util";
-import { formatarDataVales } from "../../../../util/datas.util";
-import { ItemBonus } from "../../../../components/ItemBonus";
-
-interface RouteParams {
-  funcObj: Funcionario;
-}
+import { usePaymentResumeController } from "./usePaymentResume.controller";
+import { Carregando } from "../../../../components/Carregando";
 
 export const PaymentResume = () => {
-  const route = useRoute();
-  const { funcObj } = route.params as RouteParams;
-  const navigator = useNavigation<NavigationProp<RootStackParamList>>();
+  const {
+    employee,
+    getBaseSalario,
+    funcObj,
+    incentivos,
+    navigator,
+    showConfirmModal,
+    handleCloseConfirmModal,
+    handleOpenConfirmModal,
+    handleConfirmPayment,
+    payEmployee,
+    isLoadingEmployee,
+    handleRemoveIncentiveBonus,
+  } = usePaymentResumeController();
 
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-
-  const getBaseSalario = () => {
-    let txt =
-      funcObj.tipo === "FIXO" ? `(Salário Base) R$ ` : `(Diária Base) R$ `;
-    return (txt += funcObj.salario.toFixed(2));
-  };
-
-  const incentivos = () => {
-    if (funcObj.incentivo.length === 0) return 0;
-    return funcObj.incentivo?.reduce((acc, inc) => {
-      return acc + inc.valor;
-    }, 0);
-  };
-
-  const { payEmployee } = usePaymentActions();
-
-  const handleConfirmPayment = async () => {
-    await payEmployee.mutateAsync({
-      body: {
-        incentivo: funcObj.incentivo,
-        vales: formatarDataVales(funcObj.vales),
-        valor_pago: calcularTotalParaPagar(funcObj),
-        salario_atual: funcObj.salario,
-      },
-      employeeId: funcObj.id,
-    });
-  };
-
-  useEffect(() => {
-    if (payEmployee.isPending) return;
-
-    if (payEmployee.status === "error") {
-      alert(
-        "Ocorreu um erro ao pagar o funcionário",
-        payEmployee.error.message,
-      );
-      return;
-    }
-    if (payEmployee.status === "success") {
-      setShowConfirmModal(false);
-      navigator.reset({
-        index: 0,
-        routes: [{ name: "Tabs" }],
-      });
-      return;
-    }
-  }, [payEmployee.isPending, payEmployee.status]);
+  if (isLoadingEmployee) {
+    return <Carregando />;
+  }
 
   return (
     <Layout style={styles.container}>
@@ -106,7 +60,7 @@ export const PaymentResume = () => {
               </View>
               <View style={{ alignItems: "flex-start", gap: 5 }}>
                 <Text category="s1">
-                  {funcObj.tipo === "FIXO" ? "Quinzena" : "Diárias"}
+                  {employee?.tipo === "FIXO" ? "Quinzena" : "Diárias"}
                 </Text>
                 <Text category="c2" appearance="hint">
                   {getBaseSalario()}
@@ -115,7 +69,7 @@ export const PaymentResume = () => {
             </View>
             <DinheiroDisplay
               size="lg"
-              value={calcularSalarioQuinzena(funcObj)}
+              value={calcularSalarioQuinzena(employee!)}
             />
           </CardGradient>
 
@@ -139,7 +93,7 @@ export const PaymentResume = () => {
             </View>
 
             <DinheiroDisplay
-              value={-calcularTotalVales(funcObj.vales)}
+              value={-calcularTotalVales(employee?.vales)}
               size="lg"
               variant="negative"
             />
@@ -147,7 +101,7 @@ export const PaymentResume = () => {
             <View style={{ maxHeight: 180, marginTop: 10 }}>
               {funcObj?.vales?.length > 0 ? (
                 <FlatList
-                  data={funcObj.vales}
+                  data={employee?.vales}
                   keyExtractor={(_, index) => index.toString()}
                   renderItem={({ item }) => (
                     <ItemVale
@@ -171,48 +125,54 @@ export const PaymentResume = () => {
           </CardGradient>
 
           {/* incentivos e bônus */}
-          {funcObj?.incentivo?.length > 0 && (
-            <CardGradient
-              colors_one="2"
-              colors_two="1"
-              styles={[styles.card, styles.bonusCard]}
-            >
-              <View style={styles.row}>
-                <View
-                  style={[styles.iconWrapper, { backgroundColor: "#85622986" }]}
-                >
-                  <MaterialCommunityIcons
-                    name="plus-lock-open"
-                    size={16}
-                    color={customTheme["color-warning-600"]}
-                  />
-                </View>
-                <Text category="s1">Bônus e incentivos</Text>
+          <CardGradient
+            colors_one="2"
+            colors_two="1"
+            styles={[styles.card, styles.bonusCard]}
+          >
+            <View style={styles.row}>
+              <View
+                style={[styles.iconWrapper, { backgroundColor: "#85622986" }]}
+              >
+                <MaterialCommunityIcons
+                  name="plus-lock-open"
+                  size={16}
+                  color={customTheme["color-warning-600"]}
+                />
               </View>
+              <Text category="s1">Bônus e incentivos</Text>
+            </View>
 
-              <DinheiroDisplay value={incentivos()} size="lg" />
+            <DinheiroDisplay value={incentivos()} size="lg" />
 
-              <View style={{ maxHeight: 180, marginTop: 10 }}>
-                {funcObj?.incentivo?.length > 0 ? (
-                  <FlatList
-                    data={funcObj.incentivo}
-                    keyExtractor={(_, index) => index.toString()}
-                    renderItem={({ item, index }) => (
-                      <ItemBonus key={index} item={item} showControls={true} />
-                    )}
-                    nestedScrollEnabled
-                    showsVerticalScrollIndicator={false}
-                  />
-                ) : (
-                  <Card style={styles.emptyCard}>
-                    <Text appearance="hint" style={styles.emptyText}>
-                      Nenhum item no vale
-                    </Text>
-                  </Card>
-                )}
-              </View>
-            </CardGradient>
-          )}
+            <View style={{ maxHeight: 180, marginTop: 10 }}>
+              {employee?.incentivo && employee?.incentivo.length > 0 ? (
+                <FlatList
+                  data={employee?.incentivo}
+                  keyExtractor={(_, index) => index.toString()}
+                  renderItem={({ item, index }) => (
+                    <ItemBonus
+                      key={index}
+                      item={item}
+                      showControls={true}
+                      onExclude={() => handleRemoveIncentiveBonus({
+                        employeeId: employee.id,
+                        ...item,
+                      })}
+                    />
+                  )}
+                  nestedScrollEnabled
+                  showsVerticalScrollIndicator={false}
+                />
+              ) : (
+                <Card style={styles.emptyCard}>
+                  <Text appearance="hint" style={styles.emptyText}>
+                    Nenhum bônus registrado
+                  </Text>
+                </Card>
+              )}
+            </View>
+          </CardGradient>
 
           {/* Total a pagar */}
           <Card style={styles.successCard}>
@@ -231,7 +191,7 @@ export const PaymentResume = () => {
               </Text>
             </View>
 
-            {funcObj.incentivo.length > 0 ? (
+            {employee?.incentivo && employee.incentivo.length > 0 ? (
               <View>
                 <View style={styles.linhaPagamento}>
                   <Text
@@ -246,7 +206,7 @@ export const PaymentResume = () => {
                   <DinheiroDisplay
                     value={
                       calcularSalarioQuinzena(funcObj) -
-                      calcularTotalVales(funcObj.vales)
+                      calcularTotalVales(employee?.vales)
                     }
                     size="lg"
                     variant={"default"}
@@ -266,7 +226,7 @@ export const PaymentResume = () => {
                     Incentivos
                   </Text>
                   <View style={{ alignItems: "flex-end" }}>
-                    {funcObj.incentivo.map((inc) => (
+                    {employee?.incentivo.map((inc) => (
                       <DinheiroDisplay
                         key={inc.incentivo_ref}
                         value={inc.valor}
@@ -343,7 +303,7 @@ export const PaymentResume = () => {
           <Button
             size="medium"
             appearance="outline"
-            onPress={() => setShowConfirmModal(true)}
+            onPress={handleOpenConfirmModal}
             accessoryLeft={
               <MaterialIcons
                 name="payment"
@@ -357,10 +317,7 @@ export const PaymentResume = () => {
         </Layout>
       </ScrollView>
 
-      <AppModal
-        visible={showConfirmModal}
-        onClose={() => setShowConfirmModal(false)}
-      >
+      <AppModal visible={showConfirmModal} onClose={handleCloseConfirmModal}>
         <Text category="h6" style={styles.modalTitle}>
           Confirmar Pagamento
         </Text>
@@ -388,7 +345,7 @@ export const PaymentResume = () => {
           <Button
             appearance="outline"
             disabled={payEmployee.isPending}
-            onPress={() => setShowConfirmModal(false)}
+            onPress={handleCloseConfirmModal}
           >
             Cancelar
           </Button>

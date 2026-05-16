@@ -13,6 +13,7 @@ import { useListarVales, useVales } from "../../../hooks/useVales";
 import { RootStackParamList } from "../../../routes/StackRoutes";
 import { Vale, ValeDinheiroPostRequestBody } from "../../../schema/vale.shema";
 import { alert } from "../../../util/alertfeedback.util";
+import { Voucher } from "../../../model/employee.model";
 
 type RouteParams = {
   idFunc: string;
@@ -53,7 +54,7 @@ export function useManagerVoucherController() {
 
   const [precoTexto, setPrecoTexto] = useState("");
 
-  const handleRemoveItem = async (valeToRemove: Vale) => {
+  const handleRemoveItem = async (valeToRemove: Vale | Voucher) => {
     Alert.alert(
       `Confirmar remoção`,
       `Tem certeza que quer remover "${valeToRemove.descricao}"?`,

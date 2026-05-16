@@ -8,7 +8,7 @@ interface FormAddIncentiveBonus {
   descricao: string;
 }
 
-export function useAddIncentiveBonusModalController() {
+export function useAddIncentiveBonusModalController({ onClose }: {onClose: VoidFunction}) {
   const [form, setForm] = useState<FormAddIncentiveBonus>({
     descricao: "",
     valor: "",
@@ -38,7 +38,7 @@ export function useAddIncentiveBonusModalController() {
           descricao: form.descricao,
         }
       })
-      
+      onClose();
       Alert.alert('Sucesso ao adicionar bônus')
     } catch (error) {
       Alert.alert('Ocorreu um erro ao adicionar o bônus')

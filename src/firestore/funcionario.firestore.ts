@@ -6,6 +6,7 @@ import { GanhosIncentivo } from "../schema/incentivo.schema";
 import { Vale, ValeFirestorePostRequestBody } from "../schema/vale.shema";
 import { MenuFirestore } from "./menu.firestore";
 import { PatternFirestore } from "./pattern.firestore";
+import { Voucher } from "../model/employee.model";
 
 export class FuncionarioFirestore extends PatternFirestore {
 
@@ -80,7 +81,7 @@ export class FuncionarioFirestore extends PatternFirestore {
     })
   }
 
-  public async removerVale(id: string, body: Vale) {
+  public async removerVale(id: string, body: Vale | Voucher) {
     await updateDoc(doc(this.setup(), id), {
       vales: arrayRemove(body)
     })

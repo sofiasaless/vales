@@ -1,8 +1,7 @@
 import { Button, Input, Text } from "@ui-kitten/components";
-import { AppModal } from "../../../../components/AppModal";
 import { StyleSheet, View } from "react-native";
+import { AppModal } from "../../../../components/AppModal";
 import { useAddIncentiveBonusModalController } from "./useAddIncentiveBonusModal.controller";
-import { parseMoedaBR } from "../../../../util/formatadores.util";
 
 interface AddIncentiveBonusModalProps {
   employeeId: string;
@@ -16,7 +15,7 @@ export const AddIncentiveBonusModal: React.FC<AddIncentiveBonusModalProps> = ({
   onClose,
 }) => {
   const { form, setForm, cashError, handleAddIncentiveBonus, isPending } =
-    useAddIncentiveBonusModalController();
+    useAddIncentiveBonusModalController({ onClose });
 
   return (
     <AppModal onClose={onClose} visible={modalVisible}>

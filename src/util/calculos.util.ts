@@ -1,5 +1,6 @@
 // Funções de cálculo
 
+import { EmployeeResponseBody, IncentiveBonus, Voucher } from '../model/employee.model';
 import { Funcionario, TipoFuncionario } from '../schema/funcionario.schema';
 import { GanhosIncentivo } from '../schema/incentivo.schema';
 import { Vale } from '../schema/vale.shema';
@@ -9,7 +10,7 @@ export const calculateVoucherItemTotal = (item: VoucherItem): number => {
   return item.unitPrice * item.quantity;
 };
 
-export const calcularTotalVale = (item: Vale): number => {
+export const calcularTotalVale = (item: Vale | Voucher): number => {
   return item.preco_unit * item.quantidade;
 };
 
@@ -17,7 +18,7 @@ export const calculateVoucherTotal = (items: VoucherItem[]): number => {
   return items.reduce((total, item) => total + calculateVoucherItemTotal(item), 0);
 };
 
-export const calcularTotalVales = (items: Vale[] | undefined): number => {
+export const calcularTotalVales = (items: Vale[] | Voucher[] | undefined): number => {
   if (!items) return 0;
   return items.reduce((total, item) => total + calcularTotalVale(item), 0);
 };
@@ -82,12 +83,12 @@ interface Props {
   tipo: TipoFuncionario,
   salario: number,
   dias_trabalhados_semanal?: number,
-  incentivo: GanhosIncentivo[],
-  vales: Vale[]
+  incentivo: GanhosIncentivo[] | IncentiveBonus[],
+  vales: Vale[] | Voucher[]
 }
 
-export const calcularSalarioQuinzena = (funcObj: Props) => {
-  return (funcObj.tipo === 'FIXO') ? (funcObj.salario / 2) : (funcObj.salario * (funcObj.dias_trabalhados_semanal || 1))
+export const calcularSalarioQuinzena = (employee: Props) => {
+  return (employee.tipo === 'FIXO') ? (employee.salario / 2) : (employee.salario * (employee.dias_trabalhados_semanal || 1))
 }
 
 export const calcularTotalParaPagar = (funcObj: Props) => {

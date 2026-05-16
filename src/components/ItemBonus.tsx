@@ -10,7 +10,7 @@ import { formatDateTime } from "../util/formatadores.util";
 interface VoucherItemCardProps {
   item: GanhosIncentivo;
   showControls?: boolean;
-  onExclude?: (v: GanhosIncentivo) => void;
+  onExclude?: VoidFunction;
 }
 
 export const ItemBonus: React.FC<VoucherItemCardProps> = ({
@@ -22,15 +22,14 @@ export const ItemBonus: React.FC<VoucherItemCardProps> = ({
   const totalValue = item.valor;
 
   return (
-    <Card
+    <View
       style={[
         styles.card,
         {
-          backgroundColor: "#cc8b1b4d",
+          backgroundColor: "#cc8b1b34",
           borderWidth: 1,
         },
       ]}
-      disabled
     >
       <View style={styles.content}>
         {/* Info */}
@@ -45,7 +44,7 @@ export const ItemBonus: React.FC<VoucherItemCardProps> = ({
             numberOfLines={1}
           >
             {item.data &&
-              `Adc. em ${formatDateTime(new Date(item.data))}`
+              `${formatDateTime(new Date(item.data))}`
             }
           </Text>
         </View>
@@ -54,10 +53,10 @@ export const ItemBonus: React.FC<VoucherItemCardProps> = ({
         <View style={styles.right}>
           <Text category="s2">R$ {totalValue.toFixed(2)}</Text>
 
-          {showControls && <LixeiraItem action={() => onExclude!(item)} />}
+          {showControls && <LixeiraItem action={() => onExclude!()} />}
         </View>
       </View>
-    </Card>
+    </View>
   );
 };
 
@@ -65,6 +64,8 @@ const styles = StyleSheet.create({
   card: {
     marginBottom: 8,
     borderRadius: 12,
+    paddingVertical: 15,
+    paddingHorizontal: 15
   },
   content: {
     flexDirection: "row",
