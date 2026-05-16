@@ -19,7 +19,7 @@ import { useTotalDespesasContext } from '../context/TotalDespesasContext';
 import { useRestauranteConectado } from '../hooks/useRestaurante';
 import { customTheme } from '../theme/custom.theme';
 import { converterParaDate } from '../util/datas.util';
-import { gerarRelatorioDespesas } from '../util/relatorios.util';
+import { gerarRelatorioDespesas, gerarRelatorioDespesasGeral } from '../util/relatorios.util';
 
 export default function RelatorioFinancas() {
   const { totalDespesas, filtrarPorDatas, resetarDatas, filtrando } = useTotalDespesasContext()
@@ -152,7 +152,7 @@ export default function RelatorioFinancas() {
           />
         }
         onPress={async () =>
-          gerarRelatorioDespesas(
+          gerarRelatorioDespesasGeral(
             totalDespesas || [],
             restaurante!,
             { dataFim, dataInicio }

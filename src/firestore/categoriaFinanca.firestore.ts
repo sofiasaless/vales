@@ -1,4 +1,4 @@
-import { addDoc, getDocs, orderBy, query, where } from "firebase/firestore";
+import { addDoc, doc, getDoc, getDocs, orderBy, query, where } from "firebase/firestore";
 import { RestauranteSerivce } from "../auth/restaurante.service";
 import { COLLECTIONS } from "../enums/firebase.enum";
 import { CategoriaFinancas, CategoriaFirestorePostRequestBodyFinancas, CategoriaPostRequestBodyFinancas } from "../schema/financa.schema";
@@ -47,6 +47,17 @@ export class CategoriaFinancaFirestore extends PatternFirestore {
     } catch (error) {
       console.error(error)
     }
+  }
+
+  public async encontrarPorId(id: string) {
+    const snapshot = await getDoc(doc(this.setup(), id));
+    const resultado: CategoriaFinancas = {
+      ...snapshot.data(),
+      id: snapshot.id,
+      data_criacao: converterTimestamp(snapshot.data()?.data_criacao),
+      restaurante_ref: snapshot.data()?.restaurante_ref.id
+    } as CategoriaFinancas;
+    return resultado;
   }
 
 }
