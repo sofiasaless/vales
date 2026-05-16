@@ -57,14 +57,18 @@ export function usePaymentResumeController() {
   const { payEmployee } = usePaymentActions();
 
   const handleConfirmPayment = async () => {
+    if (!employee) {
+      console.error("Funcionário não encontrado");
+      return;
+    }
     await payEmployee.mutateAsync({
+      employeeId: funcObj.id,
       body: {
         incentivo: employee?.incentivo || [],
-        vales: formatarDataVales(employee?.vales || []),
-        valor_pago: calcularTotalParaPagar(funcObj),
+        vales: employee?.vales || [],
+        valor_pago: calcularTotalParaPagar(employee),
         salario_atual: employee?.salario || 0,
       },
-      employeeId: employee?.id || "",
     });
   };
 

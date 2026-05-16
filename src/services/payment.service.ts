@@ -1,4 +1,5 @@
 import { api } from "../config/client";
+import { Voucher } from "../model/employee.model";
 import { GanhosIncentivo } from "../schema/incentivo.schema";
 import { Vale } from "../schema/vale.shema";
 import { BaseService } from "./base.service";
@@ -6,7 +7,7 @@ import { BaseService } from "./base.service";
 export interface CreateEmployeePayment {
   valor_pago: number;
   salario_atual: number;
-  vales: Vale[];
+  vales: Vale[] | Voucher[];
   incentivo: GanhosIncentivo[];
   assinatura?: string;
 }

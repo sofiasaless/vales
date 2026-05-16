@@ -207,7 +207,7 @@ export const PaymentResume = () => {
                   </Text>
                   <DinheiroDisplay
                     value={
-                      calcularSalarioQuinzena(funcObj) -
+                      calcularSalarioQuinzena(employee!) -
                       calcularTotalVales(employee?.vales)
                     }
                     size="lg"
@@ -268,10 +268,10 @@ export const PaymentResume = () => {
                     Total
                   </Text>
                   <DinheiroDisplay
-                    value={calcularTotalParaPagar(funcObj)}
+                    value={calcularTotalParaPagar(employee!)}
                     size="xl"
                     variant={
-                      calcularTotalParaPagar(funcObj) >= 0
+                      calcularTotalParaPagar(employee!) >= 0
                         ? "positive"
                         : "negative"
                     }
@@ -280,20 +280,26 @@ export const PaymentResume = () => {
               </View>
             ) : (
               <DinheiroDisplay
-                value={calcularTotalParaPagar(funcObj)}
+                value={calcularTotalParaPagar(employee!)}
                 size="xl"
                 variant={
-                  calcularTotalParaPagar(funcObj) >= 0 ? "positive" : "negative"
+                  calcularTotalParaPagar(employee!) >= 0
+                    ? "positive"
+                    : "negative"
                 }
               />
             )}
           </Card>
 
-          {/* Confirmar */}
           <Button
             size="medium"
             onPress={() => {
-              navigator.navigate("Assinatura", { funcObj });
+              if (!employee) {
+                return;
+              }
+              navigator.navigate("Assinatura", {
+                funcObj: employee,
+              });
             }}
             accessoryLeft={
               <AntDesign name="signature" size={18} color={"black"} />
@@ -331,7 +337,7 @@ export const PaymentResume = () => {
 
         <View style={styles.modalAmount}>
           <DinheiroDisplay
-            value={calcularTotalParaPagar(funcObj)}
+            value={calcularTotalParaPagar(employee!)}
             size="xl"
             variant="positive"
           />
@@ -355,7 +361,7 @@ export const PaymentResume = () => {
           <Button
             status="success"
             disabled={payEmployee.isPending}
-            onPress={handleConfirmPayment}
+            onPress={() => handleConfirmPayment()}
           >
             {payEmployee.isPending ? "Processando..." : "Confirmar"}
           </Button>

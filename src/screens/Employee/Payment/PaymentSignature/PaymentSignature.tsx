@@ -1,24 +1,29 @@
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import {
-  Button,
-  Layout
-} from '@ui-kitten/components';
-import React, { useEffect, useRef, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { Button, Layout } from "@ui-kitten/components";
+import React, { useEffect, useRef, useState } from "react";
+import { Alert, StyleSheet, View } from "react-native";
 
-import { NavigationProp, useNavigation, useRoute } from '@react-navigation/native';
-import { SignaturePad, SignaturePadRef } from '../../../../components/SignaturePad';
-import { usePaymentActions } from '../../../../hooks/payment/usePaymentActions';
-import { RootStackParamList } from '../../../../routes/StackRoutes';
-import { Funcionario } from '../../../../schema/funcionario.schema';
-import { uploadAssinaturaCloudinary } from '../../../../services/cloudnary.serivce';
-import { alert } from '../../../../util/alertfeedback.util';
-import { calcularTotalParaPagar } from '../../../../util/calculos.util';
-import { formatarDataVales } from '../../../../util/datas.util';
+import {
+  NavigationProp,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
+import {
+  SignaturePad,
+  SignaturePadRef,
+} from "../../../../components/SignaturePad";
+import { usePaymentActions } from "../../../../hooks/payment/usePaymentActions";
+import { RootStackParamList } from "../../../../routes/StackRoutes";
+import { Funcionario } from "../../../../schema/funcionario.schema";
+import { uploadAssinaturaCloudinary } from "../../../../services/cloudnary.serivce";
+import { alert } from "../../../../util/alertfeedback.util";
+import { calcularTotalParaPagar } from "../../../../util/calculos.util";
+import { formatarDataVales } from "../../../../util/datas.util";
+import { EmployeeResponseBody } from "../../../../model/employee.model";
 
 export const PaymentSignature = () => {
   const route = useRoute();
-  const { funcObj } = route.params as { funcObj: Funcionario };
+  const { funcObj } = route.params as { funcObj: EmployeeResponseBody };
   const navigator = useNavigation<NavigationProp<RootStackParamList>>();
 
   const signatureRef = useRef<SignaturePadRef>(null);
@@ -31,10 +36,10 @@ export const PaymentSignature = () => {
 
   const { payEmployee } = usePaymentActions();
 
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
   const gerarECompartilharPDF = async () => {
     try {
-      setIsLoading(true)
+      setIsLoading(true);
       if (!assinaturaBase64) {
         Alert.alert("Erro", "Nenhuma assinatura encontrada");
         return;
@@ -46,34 +51,40 @@ export const PaymentSignature = () => {
         employeeId: funcObj.id,
         body: {
           incentivo: funcObj.incentivo,
-          vales: formatarDataVales(funcObj.vales),
+          vales: funcObj.vales,
           valor_pago: calcularTotalParaPagar(funcObj),
           salario_atual: funcObj.salario,
           assinatura: cloudnary_url.secure_url,
-        }
-      })
+        },
+      });
     } catch (error: any) {
-      console.error('Ocorreu um erro ao confirmar pagamento do funcionário', error);
+      console.error(
+        "Ocorreu um erro ao confirmar pagamento do funcionário",
+        error,
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     if (payEmployee.isPending) return;
 
-    if (payEmployee.status === 'error') {
-      alert('Ocorreu um erro ao confirmar pagamento do funcionário ', payEmployee.error.message);
+    if (payEmployee.status === "error") {
+      alert(
+        "Ocorreu um erro ao confirmar pagamento do funcionário ",
+        payEmployee.error.message,
+      );
       return;
     }
-    if (payEmployee.status === 'success') {
+    if (payEmployee.status === "success") {
       navigator.reset({
         index: 0,
-        routes: [{ name: 'Tabs' }],
+        routes: [{ name: "Tabs" }],
       });
       return;
     }
-  }, [payEmployee.isPending, payEmployee.status])
+  }, [payEmployee.isPending, payEmployee.status]);
 
   return (
     <Layout style={styles.container}>
@@ -83,24 +94,32 @@ export const PaymentSignature = () => {
         <View style={styles.controlButtons}>
           <Button
             style={{ flex: 1 }}
-            status='warning'
-            appearance='outline'
+            status="warning"
+            appearance="outline"
             onPress={() => signatureRef.current?.limpar()}
-          >Limpar assinatura</Button>
+          >
+            Limpar assinatura
+          </Button>
 
           <Button
             style={{ flex: 1 }}
-            status='info'
-            appearance='outline'
+            status="info"
+            appearance="outline"
             onPress={() => signatureRef.current?.salvar()}
-          >Salvar assinatura</Button>
+          >
+            Salvar assinatura
+          </Button>
         </View>
 
         <Button
           onPress={gerarECompartilharPDF}
           disabled={!assinaturaBase64 || isLoading}
-          accessoryLeft={<MaterialIcons name="payment" size={18} color={'black'} />}
-        >{(isLoading) ? 'Confirmando...' : 'Confirmar pagamento'}</Button>
+          accessoryLeft={
+            <MaterialIcons name="payment" size={18} color={"black"} />
+          }
+        >
+          {isLoading ? "Confirmando..." : "Confirmar pagamento"}
+        </Button>
       </View>
     </Layout>
   );
@@ -112,10 +131,10 @@ const styles = StyleSheet.create({
   },
   buttons: {
     padding: 15,
-    gap: 10
+    gap: 10,
   },
   controlButtons: {
-    flexDirection: 'row',
-    gap: 10
-  }
+    flexDirection: "row",
+    gap: 10,
+  },
 });
