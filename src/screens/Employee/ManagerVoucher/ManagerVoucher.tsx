@@ -39,6 +39,7 @@ export const GerenciaVales = () => {
     handleCloseModalAddBonus,
     handleOpenModalAddBonus,
     modalAddBonusVisible,
+    showAddBonus,
   } = useManagerVoucherController();
 
   const styles = style(gerente);
@@ -67,14 +68,16 @@ export const GerenciaVales = () => {
         </Layout>
 
         <View style={{ gap: 10 }}>
-          <Button
-            onPress={handleOpenModalAddBonus}
-            size="small"
-            appearance="outline"
-            status="warning"
-          >
-            Adicionar extra/bônus
-          </Button>
+          {showAddBonus && gerente?.tipo === "GERENTE" && (
+            <Button
+              onPress={handleOpenModalAddBonus}
+              size="small"
+              appearance="outline"
+              status="warning"
+            >
+              Adicionar extra/bônus
+            </Button>
+          )}
 
           <Button
             onPress={() => setModalVisible(true)}

@@ -14,6 +14,7 @@ import { RootStackParamList } from "../../../routes/StackRoutes";
 import { Vale, ValeDinheiroPostRequestBody } from "../../../schema/vale.shema";
 import { alert } from "../../../util/alertfeedback.util";
 import { Voucher } from "../../../model/employee.model";
+import { useSettingsContext } from "../../../context/SettingsContext";
 
 type RouteParams = {
   idFunc: string;
@@ -25,6 +26,7 @@ const emptyVale: ValeDinheiroPostRequestBody = {
 };
 
 export function useManagerVoucherController() {
+  const { showAddBonus } = useSettingsContext();
   const { data: gerente } = useGerenteConectado();
 
   const route = useRoute();
@@ -143,5 +145,6 @@ export function useManagerVoucherController() {
     handleOpenModalAddBonus,
     handleCloseModalAddBonus,
     modalAddBonusVisible,
+    showAddBonus,
   };
 }

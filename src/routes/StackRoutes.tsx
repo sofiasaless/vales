@@ -31,6 +31,7 @@ import { AssinaturaContrato } from "../screens/AssinaturaContrato";
 import Settings from "../screens/Perfil/Settings/Settings";
 import { PaymentResume } from "../screens/Employee/Payment/PaymentResume/PaymentResume";
 import { PaymentSignature } from "../screens/Employee/Payment/PaymentSignature/PaymentSignature";
+import { MaintenancePage } from "../screens/DefaultPages/MaintenancePage";
 
 export type RootStackParamList = {
   Tabs: undefined;
@@ -152,7 +153,7 @@ export default function StackRoutes() {
 
       <Stack.Screen
         name="Incentivos"
-        component={Incentivos}
+        component={MaintenancePage}
         options={optionsHeader("Incentivos aos funcionários")}
       />
 

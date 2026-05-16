@@ -155,10 +155,12 @@ export const PaymentResume = () => {
                       key={index}
                       item={item}
                       showControls={true}
-                      onExclude={() => handleRemoveIncentiveBonus({
-                        employeeId: employee.id,
-                        ...item,
-                      })}
+                      onExclude={() =>
+                        handleRemoveIncentiveBonus({
+                          employeeId: employee.id,
+                          ...item,
+                        })
+                      }
                     />
                   )}
                   nestedScrollEnabled
@@ -223,7 +225,7 @@ export const PaymentResume = () => {
                       fontFamily: "JetBrains-Italic",
                     }}
                   >
-                    Incentivos
+                    Incentivo/Bônus
                   </Text>
                   <View style={{ alignItems: "flex-end" }}>
                     {employee?.incentivo.map((inc) => (
