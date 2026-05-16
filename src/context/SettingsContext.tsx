@@ -10,11 +10,23 @@ import {
 interface SettingsContextType {
   showSearchEmployeeBar: boolean;
   handleToggleSearchEmployeeBar: () => Promise<void>;
+  showAddBonus: boolean;
+  handleToggleAddEmployeeBonus: () => Promise<void>;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(
   undefined,
 );
+
+enum SETTINGS_OPTIONS {
+  SEARCH_EMPLOYEE_BAR = "searchEmployeeBar",
+  ADD_EMPLOYEE_BONUS = "addEmployeeBonus",
+}
+
+const DEFAULT_SETTING_OPTION_VALUE = {
+  [SETTINGS_OPTIONS.ADD_EMPLOYEE_BONUS]: false,
+  [SETTINGS_OPTIONS.SEARCH_EMPLOYEE_BAR]: true,
+};
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [showSearchEmployeeBar, setShowSearchEmployeeBar] =
@@ -22,20 +34,51 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const handleToggleSearchEmployeeBar = async () => {
     const newValue = !showSearchEmployeeBar;
     setShowSearchEmployeeBar(newValue);
-    await AsyncStorage.setItem("searchEmployeeBar", JSON.stringify(newValue));
+    await AsyncStorage.setItem(
+      SETTINGS_OPTIONS.SEARCH_EMPLOYEE_BAR,
+      JSON.stringify(newValue),
+    );
+  };
+
+  const [showAddBonus, setShowAddBonus] = useState<boolean>(false);
+  const handleToggleAddEmployeeBonus = async () => {
+    const newValue = !showAddBonus;
+    setShowAddBonus(newValue);
+    await AsyncStorage.setItem(
+      SETTINGS_OPTIONS.ADD_EMPLOYEE_BONUS,
+      JSON.stringify(newValue),
+    );
+  };
+
+  const handleVerifyOptions = async (
+    option: SETTINGS_OPTIONS,
+    set: (v: boolean) => void,
+  ) => {
+    const value = await AsyncStorage.getItem(option);
+    if (!value) {
+      const defaultValue = DEFAULT_SETTING_OPTION_VALUE[option];
+      set(defaultValue);
+      await AsyncStorage.setItem(option, String(defaultValue));
+    } else {
+      set(JSON.parse(value));
+    }
   };
 
   useEffect(() => {
-    const handleVerifySearchEmployeeBar = async () => {
-      const value = await AsyncStorage.getItem("searchEmployeeBar");
-      if (!value) {
-        setShowSearchEmployeeBar(true);
-        await AsyncStorage.setItem("searchEmployeeBar", "true");
-      } else {
-        setShowSearchEmployeeBar(JSON.parse(value));
-      }
+    const initializeSettings = async () => {
+      await Promise.all([
+        handleVerifyOptions(
+          SETTINGS_OPTIONS.SEARCH_EMPLOYEE_BAR,
+          setShowSearchEmployeeBar,
+        ),
+        handleVerifyOptions(
+          SETTINGS_OPTIONS.ADD_EMPLOYEE_BONUS,
+          setShowAddBonus,
+        ),
+      ]);
     };
-    handleVerifySearchEmployeeBar();
+
+    initializeSettings();
   }, []);
 
   return (
@@ -43,6 +86,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       value={{
         showSearchEmployeeBar,
         handleToggleSearchEmployeeBar,
+        handleToggleAddEmployeeBonus,
+        showAddBonus,
       }}
     >
       {children}

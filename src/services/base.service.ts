@@ -1,6 +1,6 @@
 import { api } from "../config/client";
 
-export abstract class ServicoPadrao {
+export abstract class BaseService {
   protected BASE_PATH: string = "";
 
   constructor(subpath?: string) {

@@ -1,3 +1,4 @@
+import { Voucher } from "../model/employee.model";
 import { Vale } from "../schema/vale.shema";
 import { converterTimestamp } from "./formatadores.util";
 
@@ -16,11 +17,12 @@ export function setTimeFromString(base: Date, timeString: string): Date {
   return updated;
 }
 
-export function formatarDataVales(vales: Vale[]) {
+export function formatarDataVales(vales: Vale[] | Voucher[]) {
   const formatados: Vale[] = vales.map((v) => {
     return {
       ...v,
-      data_adicao: converterTimestamp(v.data_adicao)
+      data_adicao: converterTimestamp(v.data_adicao),
+      produto_ref: (v as any).produto_ref.id || v.produto_ref 
     }
   })
 

@@ -2,29 +2,33 @@ import { Divider, Layout, Text, Toggle, useTheme } from "@ui-kitten/components";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { useSettingsContext } from "../../../context/SettingsContext";
+import { useSettingController } from "./useSettings.controller";
 
 export default function Settings() {
   const theme = useTheme();
   const styles = createStyles(theme);
 
-  const { showSearchEmployeeBar, handleToggleSearchEmployeeBar } =
-    useSettingsContext();
+  const { settingsItems } = useSettingController();
 
   return (
     <Layout style={styles.container}>
       <View style={styles.content}>
-        <View style={styles.option}>
-          <Text category="s2" style={{ flexWrap: "wrap", width: "55%" }}>
-            Barra de pesquisar funcionários
-          </Text>
-          <Toggle
-            checked={showSearchEmployeeBar}
-            onChange={handleToggleSearchEmployeeBar}
-          />
-        </View>
-        <Divider
-          style={{ backgroundColor: theme["color-basic-100"], opacity: 0.3 }}
-        />
+        {settingsItems.map((si) => (
+          <>
+            <View style={styles.option}>
+              <Text category="s2" style={{ flexWrap: "wrap", width: "55%" }}>
+                {si.description}
+              </Text>
+              <Toggle checked={si.checked} onChange={si.handleToggle} />
+            </View>
+            <Divider
+              style={{
+                backgroundColor: theme["color-basic-100"],
+                opacity: 0.3,
+              }}
+            />
+          </>
+        ))}
       </View>
     </Layout>
   );

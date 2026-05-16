@@ -2,40 +2,34 @@ import { Card, Text, useTheme } from "@ui-kitten/components";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 
-import { Vale } from "../schema/vale.shema";
+import { GanhosIncentivo } from "../schema/incentivo.schema";
 import { customTheme } from "../theme/custom.theme";
-import { converterTimestamp, formatDateTime } from "../util/formatadores.util";
 import { LixeiraItem } from "./LixeiraItem";
-import { Voucher } from "../model/employee.model";
+import { formatDateTime } from "../util/formatadores.util";
 
 interface VoucherItemCardProps {
-  item: Vale | Voucher;
+  item: GanhosIncentivo;
   showControls?: boolean;
-  dangerStyle?: boolean;
-  onExclude?: (v: Vale | Voucher) => void;
+  onExclude?: VoidFunction;
 }
 
-export const ItemVale: React.FC<VoucherItemCardProps> = ({
+export const ItemBonus: React.FC<VoucherItemCardProps> = ({
   item,
   showControls,
-  dangerStyle,
   onExclude,
 }) => {
   const theme = useTheme();
-  const totalValue = item.preco_unit * item.quantidade;
+  const totalValue = item.valor;
 
   return (
-    <Card
+    <View
       style={[
         styles.card,
         {
-          backgroundColor: dangerStyle
-            ? "#d9554636"
-            : `${theme["color-basic-600"]}80`,
-          borderWidth: dangerStyle ? 0 : 1,
+          backgroundColor: "#cc8b1b34",
+          borderWidth: 1,
         },
       ]}
-      disabled
     >
       <View style={styles.content}>
         {/* Info */}
@@ -44,38 +38,25 @@ export const ItemVale: React.FC<VoucherItemCardProps> = ({
             {item.descricao}
           </Text>
 
-          <Text appearance="hint" category="c2">
-            {item.quantidade}x{" "}
-            <Text category="s2">{item.preco_unit.toFixed(2)}</Text>
-          </Text>
-
           <Text
             category="c2"
             style={{ color: customTheme["text-hint-color"] }}
             numberOfLines={1}
           >
-            Adc. em {formatDateTime(item.data_adicao)}
+            {item.data &&
+              `${formatDateTime(new Date(item.data))}`
+            }
           </Text>
-
-          {item.criadoPor && (
-            <Text
-              category="c2"
-              style={{ color: customTheme["text-hint-color"] }}
-              numberOfLines={1}
-            >
-              Criado por: {item.criadoPor.nome}
-            </Text>
-          )}
         </View>
 
         {/* Right side */}
         <View style={styles.right}>
           <Text category="s2">R$ {totalValue.toFixed(2)}</Text>
 
-          {showControls && <LixeiraItem action={() => onExclude!(item)} />}
+          {showControls && <LixeiraItem action={() => onExclude!()} />}
         </View>
       </View>
-    </Card>
+    </View>
   );
 };
 
@@ -83,6 +64,8 @@ const styles = StyleSheet.create({
   card: {
     marginBottom: 8,
     borderRadius: 12,
+    paddingVertical: 15,
+    paddingHorizontal: 15
   },
   content: {
     flexDirection: "row",

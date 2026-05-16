@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { FuncionarioFirestore } from "../firestore/funcionario.firestore"
 import { Funcionario } from "../schema/funcionario.schema"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 
 export function useFuncionarios() {

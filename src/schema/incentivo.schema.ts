@@ -39,7 +39,9 @@ export type IncentivoFuncionarioFirestorePostRequestBody = Omit<IncentivoFuncion
 // atributos que ficará salvo no funcionário
 export type GanhosIncentivo = {
   valor: number;
-  incentivo_ref: string;
+  incentivo_ref?: string;
+  descricao?: string;
+  data?: string;
 }
 
 export type GanhoIncentivoFirestorePostResquestBody = Omit<GanhosIncentivo, "incentivo_ref"> & {

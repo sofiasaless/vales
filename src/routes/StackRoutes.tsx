@@ -9,7 +9,6 @@ import {
   FuncionarioPostRequestBody,
 } from "../schema/funcionario.schema";
 import { Incentivo } from "../schema/incentivo.schema";
-import { Assinatura } from "../screens/Assinatura";
 import Cardapio from "../screens/Cardapio";
 import { Config } from "../screens/Config";
 import { Contratacao } from "../screens/Contratacao";
@@ -19,18 +18,20 @@ import Financas from "../screens/Financas";
 import FinancasDetalhe from "../screens/FinancasDetalhe";
 import { GerenciaCardapio } from "../screens/GerenciaCardapio";
 import GerenciarGerentes from "../screens/GerenciarGerentes";
-import { GerenciaVales } from "../screens/GerenciaVales";
+import { GerenciaVales } from "../screens/Employee/ManagerVoucher/ManagerVoucher";
 import { HistoricoPagamentos } from "../screens/HIstoricoPagamentos";
 import { Incentivos } from "../screens/Incentivos";
 import { LoginGerente } from "../screens/LoginGerente";
 import Mensalidades from "../screens/Mensalidades";
 import RegistroVendaIncentivo from "../screens/RegistroVendaIncentivo";
 import RelatorioFinancas from "../screens/RelatorioFinancas";
-import { ResumoPagamento } from "../screens/ResumoPagamento";
 import { customTheme } from "../theme/custom.theme";
 import { BottomTabsRoutes } from "./BottomRoutes";
 import { AssinaturaContrato } from "../screens/AssinaturaContrato";
 import Settings from "../screens/Perfil/Settings/Settings";
+import { PaymentResume } from "../screens/Employee/Payment/PaymentResume/PaymentResume";
+import { PaymentSignature } from "../screens/Employee/Payment/PaymentSignature/PaymentSignature";
+import { MaintenancePage } from "../screens/DefaultPages/MaintenancePage";
 
 export type RootStackParamList = {
   Tabs: undefined;
@@ -86,13 +87,13 @@ export default function StackRoutes() {
 
       <Stack.Screen
         name="ResumoPagamento"
-        component={ResumoPagamento}
+        component={PaymentResume}
         options={optionsHeader("Resumo pagamento")}
       />
 
       <Stack.Screen
         name="Assinatura"
-        component={Assinatura}
+        component={PaymentSignature}
         options={optionsHeader("Assinatura do funcionário")}
       />
 
@@ -152,7 +153,7 @@ export default function StackRoutes() {
 
       <Stack.Screen
         name="Incentivos"
-        component={Incentivos}
+        component={MaintenancePage}
         options={optionsHeader("Incentivos aos funcionários")}
       />
 

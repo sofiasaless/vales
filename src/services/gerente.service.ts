@@ -5,9 +5,9 @@ import {
   GerentePostRequestBody,
   GerenteUpdateDTO,
 } from "../schema/gerente.schema";
-import { ServicoPadrao } from "./padrao.service";
+import { BaseService } from "./base.service";
 
-export class GerenteService extends ServicoPadrao {
+export class GerenteService extends BaseService {
   protected BASE_PATH: string = "gerente";
 
   async autenticar(payload: AutenticarGerenteDTO) {

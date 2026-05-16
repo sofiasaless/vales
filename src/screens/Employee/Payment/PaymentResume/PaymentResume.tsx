@@ -1,0 +1,470 @@
+import AntDesign from "@expo/vector-icons/AntDesign";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { Button, Card, Divider, Layout, Text } from "@ui-kitten/components";
+import React from "react";
+import { FlatList, ScrollView, StyleSheet, View } from "react-native";
+
+import { AppModal } from "../../../../components/AppModal";
+import { CardGradient } from "../../../../components/CardGradient";
+import { DinheiroDisplay } from "../../../../components/DinheiroDisplay";
+import { ItemBonus } from "../../../../components/ItemBonus";
+import { ItemVale } from "../../../../components/ItemVale";
+import { customTheme } from "../../../../theme/custom.theme";
+import {
+  calcularSalarioQuinzena,
+  calcularTotalParaPagar,
+  calcularTotalVales,
+} from "../../../../util/calculos.util";
+import { usePaymentResumeController } from "./usePaymentResume.controller";
+import { Carregando } from "../../../../components/Carregando";
+
+export const PaymentResume = () => {
+  const {
+    employee,
+    getBaseSalario,
+    funcObj,
+    incentivos,
+    navigator,
+    showConfirmModal,
+    handleCloseConfirmModal,
+    handleOpenConfirmModal,
+    handleConfirmPayment,
+    payEmployee,
+    isLoadingEmployee,
+    handleRemoveIncentiveBonus,
+  } = usePaymentResumeController();
+
+  if (isLoadingEmployee) {
+    return <Carregando />;
+  }
+
+  return (
+    <Layout style={styles.container}>
+      <ScrollView>
+        <Layout style={styles.content}>
+          <CardGradient
+            colors_one="2"
+            colors_two="1"
+            styles={[styles.card, styles.basicCard]}
+          >
+            <View style={styles.row}>
+              <View
+                style={[styles.iconWrapper, { backgroundColor: "#3ac28938" }]}
+              >
+                <AntDesign
+                  name="wallet"
+                  size={14}
+                  color={customTheme["color-primary-400"]}
+                />
+              </View>
+              <View style={{ alignItems: "flex-start", gap: 5 }}>
+                <Text category="s1">
+                  {employee?.tipo === "FIXO" ? "Quinzena" : "Diárias"}
+                </Text>
+                <Text category="c2" appearance="hint">
+                  {getBaseSalario()}
+                </Text>
+              </View>
+            </View>
+            <DinheiroDisplay
+              size="lg"
+              value={calcularSalarioQuinzena(employee!)}
+            />
+          </CardGradient>
+
+          {/* Vale */}
+          <CardGradient
+            colors_one="2"
+            colors_two="1"
+            styles={[styles.card, styles.dangerCard]}
+          >
+            <View style={styles.row}>
+              <View
+                style={[styles.iconWrapper, { backgroundColor: "#ef6a5b3b" }]}
+              >
+                <MaterialCommunityIcons
+                  name="receipt-text-minus-outline"
+                  size={16}
+                  color={customTheme["color-danger-600"]}
+                />
+              </View>
+              <Text category="s1">Total do Vale a Descontar</Text>
+            </View>
+
+            <DinheiroDisplay
+              value={-calcularTotalVales(employee?.vales)}
+              size="lg"
+              variant="negative"
+            />
+
+            <View style={{ maxHeight: 180, marginTop: 10 }}>
+              {funcObj?.vales?.length > 0 ? (
+                <FlatList
+                  data={employee?.vales}
+                  keyExtractor={(_, index) => index.toString()}
+                  renderItem={({ item }) => (
+                    <ItemVale
+                      key={item.id}
+                      item={item}
+                      showControls={false}
+                      dangerStyle
+                    />
+                  )}
+                  nestedScrollEnabled
+                  showsVerticalScrollIndicator={false}
+                />
+              ) : (
+                <Card style={styles.emptyCard}>
+                  <Text appearance="hint" style={styles.emptyText}>
+                    Nenhum item no vale
+                  </Text>
+                </Card>
+              )}
+            </View>
+          </CardGradient>
+
+          {/* incentivos e bônus */}
+          <CardGradient
+            colors_one="2"
+            colors_two="1"
+            styles={[styles.card, styles.bonusCard]}
+          >
+            <View style={styles.row}>
+              <View
+                style={[styles.iconWrapper, { backgroundColor: "#85622986" }]}
+              >
+                <MaterialCommunityIcons
+                  name="plus-lock-open"
+                  size={16}
+                  color={customTheme["color-warning-600"]}
+                />
+              </View>
+              <Text category="s1">Bônus e incentivos</Text>
+            </View>
+
+            <DinheiroDisplay value={incentivos()} size="lg" />
+
+            <View style={{ maxHeight: 180, marginTop: 10 }}>
+              {employee?.incentivo && employee?.incentivo.length > 0 ? (
+                <FlatList
+                  data={employee?.incentivo}
+                  keyExtractor={(_, index) => index.toString()}
+                  renderItem={({ item, index }) => (
+                    <ItemBonus
+                      key={index}
+                      item={item}
+                      showControls={true}
+                      onExclude={() =>
+                        handleRemoveIncentiveBonus({
+                          employeeId: employee.id,
+                          ...item,
+                        })
+                      }
+                    />
+                  )}
+                  nestedScrollEnabled
+                  showsVerticalScrollIndicator={false}
+                />
+              ) : (
+                <Card style={styles.emptyCard}>
+                  <Text appearance="hint" style={styles.emptyText}>
+                    Nenhum bônus registrado
+                  </Text>
+                </Card>
+              )}
+            </View>
+          </CardGradient>
+
+          {/* Total a pagar */}
+          <Card style={styles.successCard}>
+            <View style={styles.row}>
+              <View
+                style={[styles.iconWrapper, { backgroundColor: "#6fe0cb2f" }]}
+              >
+                <MaterialIcons
+                  name="payments"
+                  size={16}
+                  color={customTheme["color-success-600"]}
+                />
+              </View>
+              <Text status="success" category="s1">
+                Total a Pagar
+              </Text>
+            </View>
+
+            {employee?.incentivo && employee.incentivo.length > 0 ? (
+              <View>
+                <View style={styles.linhaPagamento}>
+                  <Text
+                    category="s2"
+                    style={{
+                      fontStyle: "italic",
+                      fontFamily: "JetBrains-Italic",
+                    }}
+                  >
+                    Subtotal
+                  </Text>
+                  <DinheiroDisplay
+                    value={
+                      calcularSalarioQuinzena(funcObj) -
+                      calcularTotalVales(employee?.vales)
+                    }
+                    size="lg"
+                    variant={"default"}
+                  />
+                </View>
+
+                <Divider style={{ backgroundColor: "#23965c6e" }} />
+
+                <View style={styles.linhaPagamento}>
+                  <Text
+                    category="s2"
+                    style={{
+                      fontStyle: "italic",
+                      fontFamily: "JetBrains-Italic",
+                    }}
+                  >
+                    Incentivo/Bônus
+                  </Text>
+                  <View style={{ alignItems: "flex-end" }}>
+                    {employee?.incentivo.map((inc) => (
+                      <DinheiroDisplay
+                        key={inc.incentivo_ref}
+                        value={inc.valor}
+                        size="sm"
+                      />
+                    ))}
+                    <View
+                      style={{ flexDirection: "row", gap: 15, marginTop: 8 }}
+                    >
+                      <Text
+                        category="s1"
+                        style={{
+                          fontStyle: "italic",
+                          fontFamily: "JetBrains-Italic",
+                        }}
+                      >
+                        Total:{" "}
+                      </Text>
+                      <DinheiroDisplay
+                        value={incentivos()}
+                        variant="positive"
+                      />
+                    </View>
+                  </View>
+                </View>
+
+                <Divider style={{ backgroundColor: "#23965c6e" }} />
+
+                <View style={styles.linhaPagamento}>
+                  <Text
+                    category="s2"
+                    style={{
+                      fontStyle: "italic",
+                      fontFamily: "JetBrains-Italic",
+                    }}
+                  >
+                    Total
+                  </Text>
+                  <DinheiroDisplay
+                    value={calcularTotalParaPagar(funcObj)}
+                    size="xl"
+                    variant={
+                      calcularTotalParaPagar(funcObj) >= 0
+                        ? "positive"
+                        : "negative"
+                    }
+                  />
+                </View>
+              </View>
+            ) : (
+              <DinheiroDisplay
+                value={calcularTotalParaPagar(funcObj)}
+                size="xl"
+                variant={
+                  calcularTotalParaPagar(funcObj) >= 0 ? "positive" : "negative"
+                }
+              />
+            )}
+          </Card>
+
+          {/* Confirmar */}
+          <Button
+            size="medium"
+            onPress={() => {
+              navigator.navigate("Assinatura", { funcObj });
+            }}
+            accessoryLeft={
+              <AntDesign name="signature" size={18} color={"black"} />
+            }
+          >
+            Coletar Assinatura
+          </Button>
+
+          <Button
+            size="medium"
+            appearance="outline"
+            onPress={handleOpenConfirmModal}
+            accessoryLeft={
+              <MaterialIcons
+                name="payment"
+                size={18}
+                color={customTheme["color-primary-400"]}
+              />
+            }
+          >
+            Confirmar pagamento (sem assinatura)
+          </Button>
+        </Layout>
+      </ScrollView>
+
+      <AppModal visible={showConfirmModal} onClose={handleCloseConfirmModal}>
+        <Text category="h6" style={styles.modalTitle}>
+          Confirmar Pagamento
+        </Text>
+
+        <Text category="s2" style={styles.modalText}>
+          Você está prestes a confirmar o pagamento SEM COLETAR A ASSINATURA.
+          Apenas o relatório comum estará disponível para compartilhar.
+        </Text>
+
+        <View style={styles.modalAmount}>
+          <DinheiroDisplay
+            value={calcularTotalParaPagar(funcObj)}
+            size="xl"
+            variant="positive"
+          />
+        </View>
+
+        <View style={styles.warningBox}>
+          <Text status="warning" category="c1">
+            ⚠️ O vale será zerado após a confirmação
+          </Text>
+        </View>
+
+        <View style={styles.modalActions}>
+          <Button
+            appearance="outline"
+            disabled={payEmployee.isPending}
+            onPress={handleCloseConfirmModal}
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            status="success"
+            disabled={payEmployee.isPending}
+            onPress={handleConfirmPayment}
+          >
+            {payEmployee.isPending ? "Processando..." : "Confirmar"}
+          </Button>
+        </View>
+      </AppModal>
+    </Layout>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  content: {
+    padding: 16,
+    gap: 16,
+  },
+  card: {
+    padding: 16,
+    borderRadius: 16,
+    gap: 5,
+  },
+  basicCard: {
+    borderColor: customTheme["text-disabled-color"],
+    borderWidth: 1,
+    borderRadius: 16,
+  },
+  dangerCard: {
+    borderColor: "rgba(255, 0, 0, 0.36)",
+    borderWidth: 1.2,
+  },
+  bonusCard: {
+    borderColor: "#d4880694",
+    borderWidth: 1.2,
+  },
+  successCard: {
+    backgroundColor: "rgba(46, 184, 114, 0.12)",
+    borderColor: "rgba(46, 184, 115, 0.46)",
+    borderWidth: 1,
+    borderRadius: 18,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 8,
+  },
+  iconWrapper: {
+    padding: 7,
+    borderRadius: 999,
+  },
+  voucherList: {
+    marginTop: 12,
+  },
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  errorIcon: {
+    width: 48,
+    height: 48,
+    marginBottom: 12,
+  },
+  backButton: {
+    marginTop: 16,
+  },
+  backdrop: {
+    backgroundColor: "rgba(0,0,0,0.6)",
+  },
+  modal: {
+    width: 320,
+    padding: 20,
+    borderRadius: 16,
+  },
+  modalTitle: {
+    marginBottom: 8,
+  },
+  modalText: {
+    marginBottom: 16,
+  },
+  modalAmount: {
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  warningBox: {
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: "rgba(245, 166, 35, 0.15)",
+    marginBottom: 16,
+  },
+  modalActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  emptyCard: {
+    padding: 24,
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  emptyText: {
+    marginTop: 8,
+  },
+
+  linhaPagamento: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBlock: 8,
+  },
+});
