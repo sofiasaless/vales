@@ -12,7 +12,7 @@ interface AvatarUploadProps {
   textLabel?: string;
   titleLabel?: string;
   avatarFormat?: "circle" | "card";
-  imageFormat: "1x1" | "3x4"
+  imageFormat: "1x1" | "3x4";
 }
 
 export const AvatarUpload = ({
@@ -56,7 +56,15 @@ export const AvatarUpload = ({
       <Text category="label">{titleLabel}</Text>
 
       {value ? (
-        <Image source={{ uri: value }} style={styles.avatar} />
+        <Image
+          source={{ uri: value }}
+          style={[
+            {
+              ...styles.avatar,
+              borderRadius: avatarFormat === "card" ? 15 : 48,
+            },
+          ]}
+        />
       ) : (
         <View
           style={[

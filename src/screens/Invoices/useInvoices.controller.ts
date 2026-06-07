@@ -97,7 +97,6 @@ export function useInvoicesController() {
   };
 
   const handleCloseModal = () => {
-    console.info({ selected });
     setPaymentProof(null);
     setSelected(null);
   };
