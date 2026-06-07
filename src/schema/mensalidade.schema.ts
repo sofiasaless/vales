@@ -6,9 +6,10 @@ export type Mensalidade = {
   valor: number,
   link: string,
   restaurante_ref: string,
-  data_criacao: Date
+  data_criacao: Date,
+  comprovante?: string,
 }
 
 export type MensalidadePostRequestBody = Omit<Mensalidade, "data_criacao" | "restaurante_ref" | "status">
 
-export type StatusMensalidade = 'PENDENTE' | 'PAGO' | 'VENCIDO'
+export type StatusMensalidade = 'PENDENTE' | 'PAGO' | 'VENCIDO' | 'ANÁLISE'
