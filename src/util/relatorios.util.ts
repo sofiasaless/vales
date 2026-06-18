@@ -241,10 +241,12 @@ export async function gerarRelatorioVales(
         incentivos.length > 0
           ? `
         <div class="section">
-          <h2>Incentivos Recebidos</h2>
+          <h2>Incentivos/Bônus Recebidos</h2>
           <table>
             <thead>
               <tr>
+                <th>Data</th>
+                <th>Descrição</th>
                 <th>Valor</th>
               </tr>
             </thead>
@@ -253,13 +255,16 @@ export async function gerarRelatorioVales(
                 .map(
                   (i) => `
                 <tr>
+                  <td>${i.data ? formatDateRelatorio(new Date(i.data)) : "Não informado"}</td>
+                  <td>${i.descricao}</td>
                   <td>${formatMoney(i.valor)}</td>
                 </tr>
               `,
                 )
                 .join("")}
               <tr>
-                <td class="total">Total    ${formatMoney(totalIncentivos)}</td>
+                <td colspan="2" class="total">Total</td>
+                <td class="total">${formatMoney(totalIncentivos)}</td>
               </tr>
             </tbody>
           </table>

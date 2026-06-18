@@ -22,7 +22,6 @@ import { GerenciaVales } from "../screens/Employee/ManagerVoucher/ManagerVoucher
 import { HistoricoPagamentos } from "../screens/HIstoricoPagamentos";
 import { Incentivos } from "../screens/Incentivos";
 import { LoginGerente } from "../screens/LoginGerente";
-import Mensalidades from "../screens/Mensalidades";
 import RegistroVendaIncentivo from "../screens/RegistroVendaIncentivo";
 import RelatorioFinancas from "../screens/RelatorioFinancas";
 import { customTheme } from "../theme/custom.theme";
@@ -32,6 +31,8 @@ import Settings from "../screens/Perfil/Settings/Settings";
 import { PaymentResume } from "../screens/Employee/Payment/PaymentResume/PaymentResume";
 import { PaymentSignature } from "../screens/Employee/Payment/PaymentSignature/PaymentSignature";
 import { MaintenancePage } from "../screens/DefaultPages/MaintenancePage";
+import { EmployeeResponseBody } from "../model/employee.model";
+import Invoices from "../screens/Invoices/Invoices";
 
 export type RootStackParamList = {
   Tabs: undefined;
@@ -40,7 +41,7 @@ export type RootStackParamList = {
   Cadastro: undefined;
   Contratacao: { funcObj: FuncionarioPostRequestBody };
   ResumoPagamento: { funcObj: Funcionario };
-  Assinatura: { funcObj: Funcionario };
+  Assinatura: { funcObj: EmployeeResponseBody };
   GerenciaCardapio: undefined;
   Detalhes: { idFunc: string };
   Historico: { funcObj: Funcionario };
@@ -117,7 +118,7 @@ export default function StackRoutes() {
 
       <Stack.Screen
         name="Mensalidades"
-        component={Mensalidades}
+        component={Invoices}
         options={optionsHeader("Mensalidades")}
       />
 
